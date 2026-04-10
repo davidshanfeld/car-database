@@ -233,7 +233,48 @@ main{max-width:1440px;margin:0 auto;padding:24px}
 
 <script>
 // Car image helper — uses imagin.studio API for consistent 3/4 front angle, transparent bg on black container
+const CAR_IMGS={
+  1:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/BMW_M3_Competition_%28G80%29_IMG_4041.jpg/960px-BMW_M3_Competition_%28G80%29_IMG_4041.jpg',
+  3:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Mercedes-AMG_GT_63_S_%28Facelift%29_1X7A7353.jpg/960px-Mercedes-AMG_GT_63_S_%28Facelift%29_1X7A7353.jpg',
+  4:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Chevrolet_Corvette_C8_IAA_2021_1X7A0156.jpg/960px-Chevrolet_Corvette_C8_IAA_2021_1X7A0156.jpg',
+  5:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/2021_Audi_RS6_Avant_in_Nardo_Gray%2C_front_right.jpg/960px-2021_Audi_RS6_Avant_in_Nardo_Gray%2C_front_right.jpg',
+  6:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/Porsche_Cayenne_%28III%2C_Facelift%29_%E2%80%93_f_01012025.jpg/960px-Porsche_Cayenne_%28III%2C_Facelift%29_%E2%80%93_f_01012025.jpg',
+  7:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/2019_BMW_X5_M50d_Automatic_3.0.jpg/960px-2019_BMW_X5_M50d_Automatic_3.0.jpg',
+  10:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/2020_Porsche_Taycan_4S_79kWh_Front.jpg/960px-2020_Porsche_Taycan_4S_79kWh_Front.jpg',
+  11:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/2022_Lucid_Air_Grand_Touring_in_Zenith_Red%2C_front_left.jpg/960px-2022_Lucid_Air_Grand_Touring_in_Zenith_Red%2C_front_left.jpg',
+  12:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/2025_Toyota_GR_Supra_3.0_front.jpg/960px-2025_Toyota_GR_Supra_3.0_front.jpg',
+  13:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/2024_Ford_Mustang_GT_Premium_convertible%2C_front_left%2C_09-28-2024.jpg/960px-2024_Ford_Mustang_GT_Premium_convertible%2C_front_left%2C_09-28-2024.jpg',
+  14:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/2021_Genesis_GV80_3.5T_Advanced%2C_front_left%2C_09-09-2023.jpg/960px-2021_Genesis_GV80_3.5T_Advanced%2C_front_left%2C_09-09-2023.jpg',
+  15:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Lexus_RX_500h_F_SPORT%2B_%28V%29_%E2%80%93_f_14072024.jpg/960px-Lexus_RX_500h_F_SPORT%2B_%28V%29_%E2%80%93_f_14072024.jpg',
+  16:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/2024_Honda_Civic_Type_R%2C_front_right%2C_06-15-2024.jpg/960px-2024_Honda_Civic_Type_R%2C_front_right%2C_06-15-2024.jpg',
+  19:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/2021_Lexus_IS300_F-Sport%2C_Front_Left%2C_10-10-2021.jpg/960px-2021_Lexus_IS300_F-Sport%2C_Front_Left%2C_10-10-2021.jpg',
+  21:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/BMW_i4_IMG_6695.jpg/960px-BMW_i4_IMG_6695.jpg',
+  22:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Mercedes-Benz_W206_IMG_5796.jpg/960px-Mercedes-Benz_W206_IMG_5796.jpg',
+  24:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Jeep_Wrangler_Unlimited_%28JL%29_PHEV_IMG_5808.jpg/960px-Jeep_Wrangler_Unlimited_%28JL%29_PHEV_IMG_5808.jpg',
+  25:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/2025_Toyota_4Runner_TRD_Sport_in_Wind_Chill_Pearl%2C_front_right%2C_2025-05-18.jpg/960px-2025_Toyota_4Runner_TRD_Sport_in_Wind_Chill_Pearl%2C_front_right%2C_2025-05-18.jpg',
+  26:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Mazda_Roadster_%28MX-5%29_by_Negawa_Bridge_%28cropped%29.jpg/960px-Mazda_Roadster_%28MX-5%29_by_Negawa_Bridge_%28cropped%29.jpg',
+  27:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/2022_Genesis_G70_2.0T_Prestige%2C_front_left%2C_09-09-2023.jpg/960px-2022_Genesis_G70_2.0T_Prestige%2C_front_left%2C_09-09-2023.jpg',
+  28:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/2021-22_RAM_1500_TRX.jpg/960px-2021-22_RAM_1500_TRX.jpg',
+};
+const PRICE_URLS={
+  1:'https://www.caranddriver.com/bmw/m3/',2:'https://www.caranddriver.com/porsche/911/',
+  3:'https://www.caranddriver.com/mercedes-amg/gt/',4:'https://www.caranddriver.com/chevrolet/corvette/',
+  5:'https://www.caranddriver.com/audi/rs6-avant/',6:'https://www.caranddriver.com/porsche/cayenne/',
+  7:'https://www.caranddriver.com/bmw/x5/',8:'https://www.caranddriver.com/mercedes-amg/gle63/',
+  9:'https://www.caranddriver.com/tesla/model-s/',10:'https://www.caranddriver.com/porsche/taycan/',
+  11:'https://www.caranddriver.com/lucid/air/',12:'https://www.caranddriver.com/toyota/supra/',
+  13:'https://www.caranddriver.com/ford/mustang/',14:'https://www.caranddriver.com/genesis/gv80/',
+  15:'https://www.caranddriver.com/lexus/rx/',16:'https://www.caranddriver.com/honda/civic-type-r/',
+  17:'https://www.caranddriver.com/rivian/r1s/',18:'https://www.caranddriver.com/ford/bronco-raptor/',
+  19:'https://www.caranddriver.com/lexus/is/',20:'https://www.caranddriver.com/volkswagen/golf-r/',
+  21:'https://www.caranddriver.com/bmw/i4/',22:'https://www.caranddriver.com/mercedes-amg/c63/',
+  23:'https://www.caranddriver.com/acura/integra/',24:'https://www.caranddriver.com/jeep/wrangler/',
+  25:'https://www.caranddriver.com/toyota/4runner/',26:'https://www.caranddriver.com/mazda/mx-5-miata/',
+  27:'https://www.caranddriver.com/genesis/g70/',28:'https://www.caranddriver.com/ram/1500-trx/',
+  29:'https://www.caranddriver.com/toyota/gr86/',30:'https://www.caranddriver.com/ford/f-150-raptor/',
+};
 function carImg(car) {
+  if(car&&CAR_IMGS[car.id])return CAR_IMGS[car.id];
   const m=car.make.toLowerCase().replace(/[\s-]+/g,'');
   const md=car.model.toLowerCase().replace(/[\s-]+/g,'');
   return `https://cdn.imagin.studio/getimage?customer=img&make=${m}&modelFamily=${md}&modelYear=${car.year}&angle=23&width=600&height=400`;
@@ -517,7 +558,7 @@ function showDetail(id){const c=CARS.find(x=>x.id===id);if(!c)return;hideAll();c
       <h1>${c.year} ${c.make} ${c.model}</h1><div class="detail-trim">${c.trim} &middot; ${c.type}</div>
       <div class="detail-actions"><button class="btn-fav" onclick="toggleFav(${c.id});showDetail(${c.id})">${f?'&#9829; Favorited':'&#9825; Favorite'}</button><button class="btn-compare" onclick="toggleCompare(${c.id});showDetail(${c.id})">${cm?'&#10003; In Compare':'+ Compare'}</button></div>
       <div class="detail-prices">
-        <div class="price-box"><div class="label">MSRP</div><div class="val" style="color:var(--gold)">${fp(c.msrp)}</div><div class="live-price"><span class="live-dot"></span>Live</div></div>
+        <div class="price-box"><div class="label">MSRP</div><div class="val" style="color:var(--gold)">${fp(c.msrp)}</div>${PRICE_URLS[c.id]?`<a href="${PRICE_URLS[c.id]}" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent2);text-decoration:none;margin-top:4px;display:block">Verify on Car&amp;Driver ↗</a>`:''}<div class="live-price"><span class="live-dot"></span>Live</div></div>
         <div class="price-box"><div class="label">Market Price</div><div class="val" style="color:${c.marketPrice>c.msrp?'var(--red)':'var(--green)'}">${fp(c.marketPrice)}</div></div>
         <div class="price-box"><div class="label">Used (1-2yr)</div><div class="val" style="color:var(--accent2)">${c.usedPrice?fp(c.usedPrice):'Too New'}</div></div>
       </div>
