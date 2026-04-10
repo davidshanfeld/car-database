@@ -233,40 +233,7 @@ main{max-width:1440px;margin:0 auto;padding:24px}
 
 <script>
 // Car image helper — uses imagin.studio API for consistent 3/4 front angle, transparent bg on black container
-const CAR_IMGS={
-  1:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/2021_BMW_M3_Competition_%28G80%2C_Australia%29%2C_front_8.4.21.jpg/1280px-2021_BMW_M3_Competition_%28G80%2C_Australia%29%2C_front_8.4.21.jpg',
-  2:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/2022_Porsche_911_Carrera_S_%28992%2C_facelift%2C_Australia%29%2C_front_10.4.22.jpg/1280px-2022_Porsche_911_Carrera_S_%28992%2C_facelift%2C_Australia%29%2C_front_10.4.22.jpg',
-  3:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Mercedes-AMG_GT_63_S_E_PERFORMANCE_%28X290%29_%E2%80%93_f_18062022.jpg/1280px-Mercedes-AMG_GT_63_S_E_PERFORMANCE_%28X290%29_%E2%80%93_f_18062022.jpg',
-  4:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/2020_Chevrolet_Corvette_Stingray_%28C8%29_in_Sebring_Orange%2C_front_8.15.19.jpg/1280px-2020_Chevrolet_Corvette_Stingray_%28C8%29_in_Sebring_Orange%2C_front_8.15.19.jpg',
-  5:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Audi_RS_6_Avant_%28C8%29_%E2%80%93_f_18062021.jpg/1280px-Audi_RS_6_Avant_%28C8%29_%E2%80%93_f_18062021.jpg',
-  6:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/2024_Porsche_Cayenne_S_E-Hybrid_%28PO536%29%2C_front_3.2.24.jpg/1280px-2024_Porsche_Cayenne_S_E-Hybrid_%28PO536%29%2C_front_3.2.24.jpg',
-  7:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/2019_BMW_X5_xDrive30d_%28G05%29%2C_front_8.15.19.jpg/1280px-2019_BMW_X5_xDrive30d_%28G05%29%2C_front_8.15.19.jpg',
-  8:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Mercedes-AMG_GLE_63_S_4MATIC%2B_%28V167%29_%E2%80%93_f_18062021.jpg/1280px-Mercedes-AMG_GLE_63_S_4MATIC%2B_%28V167%29_%E2%80%93_f_18062021.jpg',
-  9:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/2021_Tesla_Model_S_Plaid_%28US%29%2C_front_10.27.21.jpg/1280px-2021_Tesla_Model_S_Plaid_%28US%29%2C_front_10.27.21.jpg',
-  10:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/2021_Porsche_Taycan_Turbo_S_Cross_Turismo_%28AU%29%2C_front_25.4.21.jpg/1280px-2021_Porsche_Taycan_Turbo_S_Cross_Turismo_%28AU%29%2C_front_25.4.21.jpg',
-  11:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/2022_Lucid_Air_Grand_Touring%2C_front_10.16.21.jpg/1280px-2022_Lucid_Air_Grand_Touring%2C_front_10.16.21.jpg',
-  12:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/2023_Toyota_GR_Supra_3.0_Premium_%28US%29%2C_front_6.3.22.jpg/1280px-2023_Toyota_GR_Supra_3.0_Premium_%28US%29%2C_front_6.3.22.jpg',
-  13:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/2024_Ford_Mustang_GT_%28S650%29%2C_front_3.2.24.jpg/1280px-2024_Ford_Mustang_GT_%28S650%29%2C_front_3.2.24.jpg',
-  14:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/2024_Genesis_GV80_%28JX1%2C_facelift%2C_Australia%29%2C_front_12.7.24.jpg/1280px-2024_Genesis_GV80_%28JX1%2C_facelift%2C_Australia%29%2C_front_12.7.24.jpg',
-  15:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/2023_Lexus_RX_500h_F_Sport_Performance_%28AU%29%2C_front_3.8.23.jpg/1280px-2023_Lexus_RX_500h_F_Sport_Performance_%28AU%29%2C_front_3.8.23.jpg',
-  16:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/2023_Honda_Civic_Type_R_%28FL5%2C_Australia%29%2C_front_11.3.22.jpg/1280px-2023_Honda_Civic_Type_R_%28FL5%2C_Australia%29%2C_front_11.3.22.jpg',
-  17:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/2022_Rivian_R1S%2C_front_9.9.21.jpg/1280px-2022_Rivian_R1S%2C_front_9.9.21.jpg',
-  18:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/2022_Ford_Bronco_Raptor_%28US%29%2C_front_4.13.22.jpg/1280px-2022_Ford_Bronco_Raptor_%28US%29%2C_front_4.13.22.jpg',
-  19:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/2022_Lexus_IS_500_F_Sport_Performance_%28US%29%2C_front_12.5.21.jpg/1280px-2022_Lexus_IS_500_F_Sport_Performance_%28US%29%2C_front_12.5.21.jpg',
-  20:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/2022_Volkswagen_Golf_R_%28AU%29%2C_front_3.4.22.jpg/1280px-2022_Volkswagen_Golf_R_%28AU%29%2C_front_3.4.22.jpg',
-  21:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/2022_BMW_i4_M50_%28G26%29%2C_front_11.5.21.jpg/1280px-2022_BMW_i4_M50_%28G26%29%2C_front_11.5.21.jpg',
-  22:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/2023_Mercedes-AMG_C_63_S_E_Performance_%28W206%2C_Australia%29%2C_front_2.8.23.jpg/1280px-2023_Mercedes-AMG_C_63_S_E_Performance_%28W206%2C_Australia%29%2C_front_2.8.23.jpg',
-  23:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/2023_Acura_Integra_Type_S_%28US%29%2C_front_10.7.23.jpg/1280px-2023_Acura_Integra_Type_S_%28US%29%2C_front_10.7.23.jpg',
-  24:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/2021_Jeep_Wrangler_Rubicon_392_%28US%29%2C_front_5.11.21.jpg/1280px-2021_Jeep_Wrangler_Rubicon_392_%28US%29%2C_front_5.11.21.jpg',
-  25:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/2025_Toyota_4Runner_TRD_Pro_%28US%29%2C_front_10.24.24.jpg/1280px-2025_Toyota_4Runner_TRD_Pro_%28US%29%2C_front_10.24.24.jpg',
-  26:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/2019_Mazda_MX-5_RF_%28ND2%2C_facelift%2C_Australia%29%2C_front_10.10.19.jpg/1280px-2019_Mazda_MX-5_RF_%28ND2%2C_facelift%2C_Australia%29%2C_front_10.10.19.jpg',
-  27:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/2022_Genesis_G70_%28IK%2C_facelift%2C_Australia%29%2C_front_4.15.22.jpg/1280px-2022_Genesis_G70_%28IK%2C_facelift%2C_Australia%29%2C_front_4.15.22.jpg',
-  28:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/2021_Ram_1500_TRX_%28US%29%2C_front_9.9.21.jpg/1280px-2021_Ram_1500_TRX_%28US%29%2C_front_9.9.21.jpg',
-  29:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/2022_Toyota_GR_86_%28ZN8%2C_Australia%29%2C_front_4.17.22.jpg/1280px-2022_Toyota_GR_86_%28ZN8%2C_Australia%29%2C_front_4.17.22.jpg',
-  30:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/2023_Ford_F-150_Raptor_R_%28US%29%2C_front_8.17.22.jpg/1280px-2023_Ford_F-150_Raptor_R_%28US%29%2C_front_8.17.22.jpg',
-};
 function carImg(car) {
-  if(car&&CAR_IMGS[car.id])return CAR_IMGS[car.id];
   const m=car.make.toLowerCase().replace(/[\s-]+/g,'');
   const md=car.model.toLowerCase().replace(/[\s-]+/g,'');
   return `https://cdn.imagin.studio/getimage?customer=img&make=${m}&modelFamily=${md}&modelYear=${car.year}&angle=23&width=600&height=400`;
