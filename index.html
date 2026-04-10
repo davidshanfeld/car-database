@@ -56,8 +56,8 @@ main{max-width:1440px;margin:0 auto;padding:24px}
 .car-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin-bottom:32px}
 .car-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:all .25s;position:relative}
 .car-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 12px 40px rgba(124,110,245,.08)}
-.car-img{height:210px;background:#000;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
-.car-img img{max-width:92%;max-height:88%;object-fit:contain;filter:drop-shadow(0 8px 24px rgba(0,0,0,.6))}
+.car-img{height:210px;background:var(--card2);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.car-img img{max-width:92%;max-height:88%;object-fit:contain}
 .year-badge{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);color:var(--text);font-size:12px;padding:4px 12px;border-radius:8px;font-weight:600}
 .concept-badge{position:absolute;top:10px;left:10px;background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;font-size:11px;padding:4px 12px;border-radius:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
 .fav-btn{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);border:none;color:var(--muted);font-size:20px;width:38px;height:38px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;z-index:10}
@@ -82,8 +82,8 @@ main{max-width:1440px;margin:0 auto;padding:24px}
 .back-btn{background:var(--card);border:1px solid var(--border);color:var(--text);padding:10px 20px;border-radius:10px;cursor:pointer;font-size:14px;margin-bottom:20px;transition:all .2s}
 .back-btn:hover{border-color:var(--accent)}
 .detail-header{display:flex;gap:32px;margin-bottom:32px;flex-wrap:wrap}
-.detail-img{width:520px;height:360px;background:#000;border-radius:var(--radius);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.detail-img img{max-width:95%;max-height:90%;object-fit:contain;filter:drop-shadow(0 12px 32px rgba(0,0,0,.5))}
+.detail-img{width:520px;height:360px;background:var(--card2);border-radius:var(--radius);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.detail-img img{max-width:95%;max-height:90%;object-fit:contain}
 .detail-info{flex:1;min-width:320px}
 .detail-info h1{font-size:30px;margin-bottom:4px;font-weight:800}
 .detail-trim{color:var(--muted);font-size:16px;margin-bottom:16px}
@@ -122,7 +122,7 @@ main{max-width:1440px;margin:0 auto;padding:24px}
 .compare-table th,.compare-table td{border:1px solid var(--border);padding:10px 14px;text-align:center;font-size:14px}
 .compare-table th{background:var(--card);color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;text-align:left;position:sticky;left:0;z-index:2;min-width:130px}
 .compare-table td{background:var(--bg)}.compare-table td.best{color:var(--gold);font-weight:700}
-.compare-table .car-header{padding:12px}.compare-table .car-header img{width:100%;height:100px;object-fit:contain;background:#000;border-radius:8px;margin-bottom:8px;padding:8px}
+.compare-table .car-header{padding:12px}.compare-table .car-header img{width:100%;height:100px;object-fit:contain;background:var(--card2);border-radius:8px;margin-bottom:8px;padding:8px}
 .compare-table .car-header h4{font-size:14px}
 .compare-remove{background:var(--card);border:1px solid var(--border);color:var(--red);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;margin-top:6px}
 
@@ -131,8 +131,8 @@ main{max-width:1440px;margin:0 auto;padding:24px}
 .listing-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:16px;margin-bottom:24px}
 .listing-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:all .2s}
 .listing-card:hover{border-color:var(--gold);transform:translateY(-2px)}
-.listing-img{height:200px;background:#000;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center}
-.listing-img img{max-width:90%;max-height:85%;object-fit:contain;filter:drop-shadow(0 8px 20px rgba(0,0,0,.5))}
+.listing-img{height:200px;background:var(--card2);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center}
+.listing-img img{max-width:90%;max-height:85%;object-fit:contain}
 .dom-badge{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);color:var(--yellow);font-size:11px;padding:4px 10px;border-radius:8px;font-weight:600}
 .listing-body{padding:16px}.listing-body h3{font-size:16px;margin-bottom:2px}
 .listing-sub{color:var(--muted);font-size:13px;margin-bottom:10px}
@@ -164,7 +164,7 @@ main{max-width:1440px;margin:0 auto;padding:24px}
 .similar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px}
 .similar-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:all .2s}
 .similar-card:hover{border-color:var(--accent)}
-.similar-card .sim-img{height:120px;background:#000;display:flex;align-items:center;justify-content:center}
+.similar-card .sim-img{height:120px;background:var(--card2);display:flex;align-items:center;justify-content:center}
 .similar-card .sim-img img{max-width:85%;max-height:80%;object-fit:contain}
 .similar-card .sim-body{padding:10px}
 .similar-card .sim-body h4{font-size:13px;margin-bottom:2px}
@@ -244,30 +244,7 @@ footer .footer-brand{font-size:16px;font-weight:800;margin-bottom:6px}footer .fo
 </footer>
 
 <script>
-// Car image helper — uses imagin.studio API for consistent 3/4 front angle, transparent bg on black container
-const CAR_IMGS={
-  1:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/BMW_M3_Competition_%28G80%29_IMG_4041.jpg/960px-BMW_M3_Competition_%28G80%29_IMG_4041.jpg',
-  3:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Mercedes-AMG_GT_63_S_%28Facelift%29_1X7A7353.jpg/960px-Mercedes-AMG_GT_63_S_%28Facelift%29_1X7A7353.jpg',
-  4:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Chevrolet_Corvette_C8_IAA_2021_1X7A0156.jpg/960px-Chevrolet_Corvette_C8_IAA_2021_1X7A0156.jpg',
-  5:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/2021_Audi_RS6_Avant_in_Nardo_Gray%2C_front_right.jpg/960px-2021_Audi_RS6_Avant_in_Nardo_Gray%2C_front_right.jpg',
-  6:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/Porsche_Cayenne_%28III%2C_Facelift%29_%E2%80%93_f_01012025.jpg/960px-Porsche_Cayenne_%28III%2C_Facelift%29_%E2%80%93_f_01012025.jpg',
-  7:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/2019_BMW_X5_M50d_Automatic_3.0.jpg/960px-2019_BMW_X5_M50d_Automatic_3.0.jpg',
-  10:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/2020_Porsche_Taycan_4S_79kWh_Front.jpg/960px-2020_Porsche_Taycan_4S_79kWh_Front.jpg',
-  11:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/2022_Lucid_Air_Grand_Touring_in_Zenith_Red%2C_front_left.jpg/960px-2022_Lucid_Air_Grand_Touring_in_Zenith_Red%2C_front_left.jpg',
-  12:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/2025_Toyota_GR_Supra_3.0_front.jpg/960px-2025_Toyota_GR_Supra_3.0_front.jpg',
-  13:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/2024_Ford_Mustang_GT_Premium_convertible%2C_front_left%2C_09-28-2024.jpg/960px-2024_Ford_Mustang_GT_Premium_convertible%2C_front_left%2C_09-28-2024.jpg',
-  14:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/2021_Genesis_GV80_3.5T_Advanced%2C_front_left%2C_09-09-2023.jpg/960px-2021_Genesis_GV80_3.5T_Advanced%2C_front_left%2C_09-09-2023.jpg',
-  15:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Lexus_RX_500h_F_SPORT%2B_%28V%29_%E2%80%93_f_14072024.jpg/960px-Lexus_RX_500h_F_SPORT%2B_%28V%29_%E2%80%93_f_14072024.jpg',
-  16:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/2024_Honda_Civic_Type_R%2C_front_right%2C_06-15-2024.jpg/960px-2024_Honda_Civic_Type_R%2C_front_right%2C_06-15-2024.jpg',
-  19:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/2021_Lexus_IS300_F-Sport%2C_Front_Left%2C_10-10-2021.jpg/960px-2021_Lexus_IS300_F-Sport%2C_Front_Left%2C_10-10-2021.jpg',
-  21:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/BMW_i4_IMG_6695.jpg/960px-BMW_i4_IMG_6695.jpg',
-  22:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Mercedes-Benz_W206_IMG_5796.jpg/960px-Mercedes-Benz_W206_IMG_5796.jpg',
-  24:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Jeep_Wrangler_Unlimited_%28JL%29_PHEV_IMG_5808.jpg/960px-Jeep_Wrangler_Unlimited_%28JL%29_PHEV_IMG_5808.jpg',
-  25:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/2025_Toyota_4Runner_TRD_Sport_in_Wind_Chill_Pearl%2C_front_right%2C_2025-05-18.jpg/960px-2025_Toyota_4Runner_TRD_Sport_in_Wind_Chill_Pearl%2C_front_right%2C_2025-05-18.jpg',
-  26:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Mazda_Roadster_%28MX-5%29_by_Negawa_Bridge_%28cropped%29.jpg/960px-Mazda_Roadster_%28MX-5%29_by_Negawa_Bridge_%28cropped%29.jpg',
-  27:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/2022_Genesis_G70_2.0T_Prestige%2C_front_left%2C_09-09-2023.jpg/960px-2022_Genesis_G70_2.0T_Prestige%2C_front_left%2C_09-09-2023.jpg',
-  28:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/2021-22_RAM_1500_TRX.jpg/960px-2021-22_RAM_1500_TRX.jpg',
-};
+// All car images from imagin.studio — consistent 3/4 front-left angle for every vehicle
 const PRICE_URLS={
   1:'https://www.caranddriver.com/bmw/m3/',2:'https://www.caranddriver.com/porsche/911/',
   3:'https://www.caranddriver.com/mercedes-amg/gt/',4:'https://www.caranddriver.com/chevrolet/corvette/',
@@ -285,25 +262,12 @@ const PRICE_URLS={
   27:'https://www.caranddriver.com/genesis/g70/',28:'https://www.caranddriver.com/ram/1500-trx/',
   29:'https://www.caranddriver.com/toyota/gr86/',30:'https://www.caranddriver.com/ford/f-150-raptor/',
 };
-function imaginUrl(make,model,year){
-  const m=make.toLowerCase().replace(/[\s-]+/g,'');
-  const md=model.toLowerCase().replace(/[\s-]+/g,'');
-  return `https://cdn.imagin.studio/getimage?customer=img&make=${m}&modelFamily=${md}&modelYear=${year}&angle=23&width=600&height=400`;
-}
 function carImg(car) {
-  if(car&&CAR_IMGS[car.id])return CAR_IMGS[car.id];
-  return imaginUrl(car.make,car.model,car.year);
+  const m=car.make.toLowerCase().replace(/[\s-]+/g,'');
+  const md=car.model.toLowerCase().replace(/[\s-]+/g,'');
+  return `https://cdn.imagin.studio/getimage?customer=img&make=${m}&modelFamily=${md}&modelYear=${car.year}&angle=23&width=600&height=400&zoomType=fullscreen`;
 }
-// Fallback chain: Wikipedia photo → imagin.studio render → text label
-function imgFail(el){
-  if(!el.dataset.tried){
-    el.dataset.tried='1';
-    el.src=imaginUrl(el.dataset.make||'',el.dataset.model||'',el.dataset.year||'2025');
-  } else {
-    el.style.display='none';
-  }
-}
-function imgAttrs(car){return `data-make="${car.make}" data-model="${car.model}" data-year="${car.year}" onerror="imgFail(this)"`}
+function imgAttrs(car){return `onerror="this.style.display='none'"`}
 
 // ============ DATABASE — PREMIUM ONLY ============
 const CARS=[
