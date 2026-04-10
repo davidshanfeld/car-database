@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoVault — Premium Car Database & Marketplace</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{--bg:#050507;--card:#0c0d12;--card2:#111318;--accent:#7c6ef5;--accent2:#a78bfa;--gold:#d4a537;--green:#34d399;--red:#f87171;--yellow:#fbbf24;--text:#f1f5f9;--muted:#6b7280;--border:#1a1d28;--radius:14px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:#1f2937;border-radius:3px}
+
+nav{background:rgba(12,13,18,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;height:64px;position:sticky;top:0;z-index:100}
+.logo{font-size:24px;font-weight:900;margin-right:32px;cursor:pointer;white-space:nowrap;letter-spacing:-.5px}
+.logo span:first-child{color:var(--text)}
+.logo span:last-child{color:var(--gold)}
+.nav-links{display:flex;gap:2px;flex:1}
+.nav-links button{background:none;border:none;color:var(--muted);font-size:13px;padding:8px 14px;border-radius:8px;cursor:pointer;transition:all .2s;font-weight:500}
+.nav-links button:hover,.nav-links button.active{background:rgba(124,110,245,.12);color:var(--accent2)}
+.search-bar{display:flex;align-items:center;background:rgba(26,29,40,.6);border:1px solid var(--border);border-radius:10px;padding:8px 14px;width:280px}
+.search-bar input{background:none;border:none;color:var(--text);outline:none;width:100%;font-size:14px}
+.search-bar svg{color:var(--muted);margin-right:8px;flex-shrink:0}
+
+main{max-width:1440px;margin:0 auto;padding:24px}
+
+/* QUIZ */
+#quiz-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:200;display:flex;align-items:center;justify-content:center}
+#quiz-overlay.hidden{display:none}
+.quiz-container{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:40px;max-width:640px;width:90%;max-height:90vh;overflow-y:auto}
+.quiz-container h2{font-size:26px;margin-bottom:4px}.quiz-subtitle{color:var(--muted);margin-bottom:24px;font-size:14px}
+.quiz-progress{height:3px;background:var(--border);border-radius:2px;margin-bottom:24px}
+.quiz-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--accent));border-radius:2px;transition:width .3s}
+.quiz-question{font-size:17px;font-weight:600;margin-bottom:16px}
+.quiz-options{display:flex;flex-direction:column;gap:8px}
+.quiz-options button{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:12px 16px;border-radius:10px;text-align:left;cursor:pointer;transition:all .2s;font-size:14px}
+.quiz-options button:hover{border-color:var(--accent);background:rgba(124,110,245,.08)}
+.quiz-options button.selected{border-color:var(--accent);background:rgba(124,110,245,.12)}
+.quiz-nav{display:flex;justify-content:space-between;margin-top:24px}
+.quiz-nav button{padding:10px 24px;border-radius:10px;font-size:14px;cursor:pointer;border:none;font-weight:600}
+.btn-back{background:var(--border);color:var(--text)}.btn-next{background:var(--accent);color:#fff}
+.quiz-nav button:disabled{opacity:.3;cursor:not-allowed}
+.quiz-skip{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;margin-top:16px;text-align:center;display:block;width:100%}
+
+/* FILTERS */
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.filters select{background:var(--card);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:10px;font-size:13px;outline:none;cursor:pointer}
+
+/* SECTIONS */
+.section-title{font-size:20px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.badge{font-size:11px;background:var(--accent);color:#fff;padding:3px 12px;border-radius:12px;font-weight:600}
+.badge-gold{background:var(--gold);color:#000}.badge-green{background:var(--green);color:#000}.badge-orange{background:#f97316;color:#000}
+
+/* CAR GRID */
+.car-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin-bottom:32px}
+.car-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:all .25s;position:relative}
+.car-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 12px 40px rgba(124,110,245,.08)}
+.car-img{height:210px;background:#000;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.car-img img{max-width:92%;max-height:88%;object-fit:contain;filter:drop-shadow(0 8px 24px rgba(0,0,0,.6))}
+.year-badge{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);color:var(--text);font-size:12px;padding:4px 12px;border-radius:8px;font-weight:600}
+.concept-badge{position:absolute;top:10px;left:10px;background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;font-size:11px;padding:4px 12px;border-radius:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.fav-btn{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);border:none;color:var(--muted);font-size:20px;width:38px;height:38px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;z-index:10}
+.fav-btn.favorited{color:var(--red)}.fav-btn:hover{transform:scale(1.1)}
+.card-body{padding:16px}
+.card-body h3{font-size:16px;margin-bottom:2px;font-weight:700}
+.card-body .trim{color:var(--muted);font-size:13px;margin-bottom:10px}
+.price-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.msrp{font-size:20px;font-weight:800;color:var(--gold)}
+.market{font-size:13px;color:var(--muted)}
+.overall-score{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.score-circle{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff;flex-shrink:0}
+.score-bar{display:flex;align-items:center;gap:8px;margin-top:4px}
+.score-bar .sl{font-size:11px;color:var(--muted);width:50px}.score-bar .bar{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.score-bar .bf{height:100%;border-radius:2px}.score-bar .sv{font-size:12px;font-weight:600;width:28px;text-align:right}
+.live-price{display:flex;align-items:center;font-size:11px;color:var(--green);margin-top:4px}
+.live-dot{display:inline-block;width:6px;height:6px;background:#34d399;border-radius:50%;margin-right:5px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* DETAIL */
+#detail-view{display:none}#detail-view.active{display:block}.hidden{display:none!important}
+.back-btn{background:var(--card);border:1px solid var(--border);color:var(--text);padding:10px 20px;border-radius:10px;cursor:pointer;font-size:14px;margin-bottom:20px;transition:all .2s}
+.back-btn:hover{border-color:var(--accent)}
+.detail-header{display:flex;gap:32px;margin-bottom:32px;flex-wrap:wrap}
+.detail-img{width:520px;height:360px;background:#000;border-radius:var(--radius);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.detail-img img{max-width:95%;max-height:90%;object-fit:contain;filter:drop-shadow(0 12px 32px rgba(0,0,0,.5))}
+.detail-info{flex:1;min-width:320px}
+.detail-info h1{font-size:30px;margin-bottom:4px;font-weight:800}
+.detail-trim{color:var(--muted);font-size:16px;margin-bottom:16px}
+.detail-actions{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.detail-actions button{padding:10px 20px;border-radius:10px;border:none;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s}
+.btn-fav{background:rgba(248,113,113,.1);color:var(--red);border:1px solid rgba(248,113,113,.2)!important}
+.btn-compare{background:rgba(124,110,245,.1);color:var(--accent2);border:1px solid rgba(124,110,245,.2)!important}
+.detail-prices{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.price-box{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px}
+.price-box .label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.price-box .val{font-size:22px;font-weight:800;margin-top:4px}
+.detail-scores{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-bottom:20px}
+.score-item{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+.score-item .s-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.score-item .s-val{font-size:26px;font-weight:800}
+.spec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:24px}
+.spec-item{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px}
+.spec-item .spec-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.spec-item .spec-val{font-size:15px;font-weight:600;margin-top:2px}
+.package-item{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:8px}
+.package-item h4{font-size:14px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center}
+.pkg-price{color:var(--gold);font-weight:700;font-size:13px}
+.package-item p{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.5}
+.used-verdict{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:24px}
+.used-verdict h3{font-size:16px;margin-bottom:8px}.used-verdict .verdict{font-size:14px;line-height:1.7;color:var(--muted)}
+
+/* DEPRECIATION CHART */
+.dep-chart{display:flex;align-items:flex-end;gap:4px;height:120px;margin-top:12px;padding:0 4px}
+.dep-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.dep-bar{width:100%;border-radius:4px 4px 0 0;background:var(--accent);transition:height .5s;min-height:2px}
+.dep-label{font-size:10px;color:var(--muted)}
+.dep-val{font-size:10px;color:var(--text);font-weight:600}
+
+/* COMPARE */
+.compare-table{width:100%;border-collapse:collapse;margin-bottom:24px}
+.compare-table th,.compare-table td{border:1px solid var(--border);padding:10px 14px;text-align:center;font-size:14px}
+.compare-table th{background:var(--card);color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;text-align:left;position:sticky;left:0;z-index:2;min-width:130px}
+.compare-table td{background:var(--bg)}.compare-table td.best{color:var(--gold);font-weight:700}
+.compare-table .car-header{padding:12px}.compare-table .car-header img{width:100%;height:100px;object-fit:contain;background:#000;border-radius:8px;margin-bottom:8px;padding:8px}
+.compare-table .car-header h4{font-size:14px}
+.compare-remove{background:var(--card);border:1px solid var(--border);color:var(--red);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;margin-top:6px}
+
+/* MARKETPLACE */
+#map{height:500px;border-radius:var(--radius);margin-bottom:20px;border:1px solid var(--border)}
+.listing-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:16px;margin-bottom:24px}
+.listing-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:all .2s}
+.listing-card:hover{border-color:var(--gold);transform:translateY(-2px)}
+.listing-img{height:200px;background:#000;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center}
+.listing-img img{max-width:90%;max-height:85%;object-fit:contain;filter:drop-shadow(0 8px 20px rgba(0,0,0,.5))}
+.dom-badge{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);color:var(--yellow);font-size:11px;padding:4px 10px;border-radius:8px;font-weight:600}
+.listing-body{padding:16px}.listing-body h3{font-size:16px;margin-bottom:2px}
+.listing-sub{color:var(--muted);font-size:13px;margin-bottom:10px}
+.listing-prices{display:flex;gap:16px;margin-bottom:8px}.lp{text-align:center}
+.lp .lp-label{font-size:10px;color:var(--muted);text-transform:uppercase}.lp .lp-val{font-size:18px;font-weight:700}
+.listing-meta{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.distance-badge{background:rgba(124,110,245,.12);color:var(--accent2);padding:3px 10px;border-radius:8px;font-weight:600}
+.savings-badge{color:var(--green);font-weight:700;font-size:14px}
+.my-location-banner{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.my-location-banner button{background:var(--accent);color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600}
+
+/* LIVE TICKER */
+.live-panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:20px}
+.live-panel h3{font-size:13px;margin-bottom:10px;display:flex;align-items:center;gap:8px;color:var(--muted)}
+.live-ticker{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px}
+.tick-item{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 14px;min-width:180px;flex-shrink:0}
+.tick-item .tn{font-size:11px;color:var(--muted);margin-bottom:2px}
+.tick-item .tp{font-size:16px;font-weight:700}
+.tick-item .tc{font-size:11px;margin-top:1px}
+.tick-up{color:var(--green)}.tick-down{color:var(--red)}
+
+/* COST OF OWNERSHIP */
+.coo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:20px}
+.coo-item{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+.coo-item .coo-label{font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
+.coo-item .coo-val{font-size:18px;font-weight:700}
+
+/* SIMILAR CARS */
+.similar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px}
+.similar-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:all .2s}
+.similar-card:hover{border-color:var(--accent)}
+.similar-card .sim-img{height:120px;background:#000;display:flex;align-items:center;justify-content:center}
+.similar-card .sim-img img{max-width:85%;max-height:80%;object-fit:contain}
+.similar-card .sim-body{padding:10px}
+.similar-card .sim-body h4{font-size:13px;margin-bottom:2px}
+.similar-card .sim-body .sim-price{font-size:14px;font-weight:700;color:var(--gold)}
+
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}.empty-state .empty-icon{font-size:48px;margin-bottom:12px}
+
+@media(max-width:768px){.detail-header{flex-direction:column}.detail-img{width:100%;height:240px}.detail-prices{grid-template-columns:1fr}.car-grid{grid-template-columns:1fr}.listing-grid{grid-template-columns:1fr}nav{padding:0 12px}.search-bar{width:160px}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo" onclick="showView('browse')"><span>Auto</span><span>Vault</span></div>
+  <div class="nav-links">
+    <button class="active" data-view="browse" onclick="showView('browse')">Browse</button>
+    <button data-view="upcoming" onclick="showView('upcoming')">Upcoming</button>
+    <button data-view="marketplace" onclick="showView('marketplace')">Marketplace</button>
+    <button data-view="compare" onclick="showView('compare')">Compare</button>
+    <button data-view="favorites" onclick="showView('favorites')">Favorites</button>
+  </div>
+  <div class="search-bar">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    <input type="text" placeholder="Search vehicles..." id="searchInput" oninput="filterCars()">
+  </div>
+</nav>
+
+<div id="quiz-overlay">
+  <div class="quiz-container">
+    <h2>Build Your Profile</h2>
+    <p class="quiz-subtitle">15 questions to personalize your AutoVault experience</p>
+    <div class="quiz-progress"><div class="quiz-progress-fill" id="quizProgress"></div></div>
+    <div id="quizContent"></div>
+    <div class="quiz-nav"><button class="btn-back" id="quizBack" onclick="quizPrev()" disabled>Back</button><button class="btn-next" id="quizNext" onclick="quizNext()" disabled>Next</button></div>
+    <button class="quiz-skip" onclick="skipQuiz()">Skip — browse everything</button>
+  </div>
+</div>
+
+<main>
+  <div id="browse-view">
+    <div class="live-panel"><h3><span class="live-dot"></span>LIVE MARKET DATA</h3><div class="live-ticker" id="liveTicker"></div></div>
+    <div class="filters">
+      <select id="filterYear" onchange="filterCars()"><option value="">All Years</option><option>2027</option><option>2026</option><option>2025</option><option>2024</option><option>2023</option></select>
+      <select id="filterMake" onchange="filterCars()"><option value="">All Makes</option></select>
+      <select id="filterType" onchange="filterCars()"><option value="">All Types</option><option>Sedan</option><option>SUV</option><option>Truck</option><option>Coupe</option><option>Sports Car</option><option>EV</option><option>Hybrid</option><option>Wagon</option></select>
+      <select id="filterPrice" onchange="filterCars()"><option value="">Any Price</option><option value="50000">Under $50k</option><option value="75000">Under $75k</option><option value="100000">Under $100k</option><option value="150000">Under $150k</option><option value="150001">$150k+</option></select>
+      <select id="sortBy" onchange="filterCars()"><option value="score">Best Score</option><option value="price-low">Price: Low</option><option value="price-high">Price: High</option><option value="name">Name A-Z</option><option value="hp">Most Power</option></select>
+    </div>
+    <div id="rec-section" style="display:none"><div class="section-title">Recommended For You <span class="badge badge-gold">Personalized</span></div><div class="car-grid" id="recGrid"></div></div>
+    <div class="section-title">All Vehicles <span class="badge" id="carCount">0</span></div>
+    <div class="car-grid" id="carGrid"></div>
+  </div>
+  <div id="upcoming-view" class="hidden"><div class="section-title">Upcoming & Concept Vehicles <span class="badge badge-orange">Coming Soon</span></div><p style="color:var(--muted);margin-bottom:20px;font-size:14px">Announced but not yet available. Specs and pricing are estimated.</p><div class="car-grid" id="upcomingGrid"></div></div>
+  <div id="marketplace-view" class="hidden">
+    <div class="section-title">Luxury Deals — Newport Beach <span class="badge badge-green">Live</span></div>
+    <p style="color:var(--muted);margin-bottom:16px;font-size:14px">Under $100k | 2020+ | Original MSRP $250k+ | Within 25 miles</p>
+    <div class="my-location-banner" id="locationBanner"><div id="locText">Enable location to see distances from you</div><button onclick="requestLocation()">Share My Location</button></div>
+    <div id="map"></div>
+    <div class="section-title">Available <span class="badge badge-green" id="listingCount">0</span></div>
+    <div class="listing-grid" id="listingGrid"></div>
+  </div>
+  <div id="compare-view" class="hidden"><div class="section-title">Compare <span class="badge" id="compareCount">0</span></div><div id="compareContent"></div></div>
+  <div id="favorites-view" class="hidden"><div class="section-title">Favorites <span class="badge" id="favCount">0</span></div><div class="car-grid" id="favGrid"></div><div id="favEmpty" class="empty-state" style="display:none"><div class="empty-icon">&#9734;</div><p>No favorites yet.</p></div></div>
+  <div id="detail-view"></div>
+</main>
+
+<script>
+// Car image helper — uses imagin.studio API for consistent 3/4 front angle, transparent bg on black container
+function carImg(make, model, year) {
+  const m = make.toLowerCase().replace(/[\s-]+/g,'');
+  const md = model.toLowerCase().replace(/[\s-]+/g,'');
+  return `https://cdn.imagin.studio/getimage?customer=hrjavascript-masede&make=${m}&modelFamily=${md}&modelYear=${year}&angle=23&width=600&height=400&zoomType=fullscreen&paintId=3`;
+}
+
+// ============ DATABASE — PREMIUM ONLY ============
+const CARS=[
+  {id:1,year:2026,make:"BMW",model:"M3",trim:"Competition xDrive",type:"Sedan",msrp:82900,marketPrice:81500,usedPrice:null,
+    hp:503,torque:479,engine:"3.0L Twin-Turbo I6",transmission:"8-Speed M Steptronic",drivetrain:"AWD",fuelEconomy:"16/23 mpg",weight:3990,cargo:13.0,seating:5,warranty:"4yr/50k mi",
+    scores:{overall:9.0,performance:9.8,safety:8.5,reliability:7.2,comfort:8.5,tech:9.0,value:7.0},tags:["performance","sedan","luxury","awd","turbo"],
+    packages:[{name:"Executive Package",price:3500,desc:"Gesture control, parking assist plus, soft-close doors"},{name:"Carbon Fiber Package",price:5800,desc:"Carbon roof, mirror caps, rear diffuser, front splitter"},{name:"M Driver's Package",price:2500,desc:"Top speed raised to 180 mph"}],
+    features:["M xDrive AWD","Active M differential","Adaptive M suspension","14.9\" curved display","M Drive Professional"],
+    usedVerdict:"Caution on used. Maintenance costs high. Extended warranty recommended. Competition models hold value better than base.",annualInsurance:3200,annualFuel:3400,annualMaint:1800},
+  {id:2,year:2025,make:"Porsche",model:"911",trim:"Carrera S",type:"Sports Car",msrp:130050,marketPrice:135000,usedPrice:120000,
+    hp:443,torque:390,engine:"3.0L Twin-Turbo Flat-6",transmission:"8-Speed PDK",drivetrain:"RWD",fuelEconomy:"18/24 mpg",weight:3382,cargo:4.6,seating:4,warranty:"4yr/50k mi",
+    scores:{overall:9.4,performance:9.8,safety:8.5,reliability:8.5,comfort:8.8,tech:9.0,value:7.0},tags:["sports","performance","luxury","rwd","turbo"],
+    packages:[{name:"Sport Chrono",price:2970,desc:"Mode switch, launch control, dynamic engine mounts, lap timer"},{name:"Premium Package",price:5300,desc:"14-way seats, BOSE audio, ambient lighting"},{name:"Sport Exhaust",price:3490,desc:"Active sport exhaust with switchable valve control"}],
+    features:["PCM 7.0","12.6\" curved display","PASM adaptive dampers","Wet mode"],
+    usedVerdict:"Excellent used buy. 911s are investment-grade. Depreciation among lowest for any sports car. Manual trans commands premium.",annualInsurance:3800,annualFuel:3100,annualMaint:1500},
+  {id:3,year:2025,make:"Mercedes-Benz",model:"AMG GT",trim:"63 S E Performance",type:"Sports Car",msrp:194150,marketPrice:190000,usedPrice:170000,
+    hp:831,torque:1033,engine:"4.0L V8 + Electric Motor",transmission:"9-Speed MCT",drivetrain:"AWD",fuelEconomy:"15/18 mpg",weight:5115,cargo:10.4,seating:4,warranty:"4yr/50k mi",
+    scores:{overall:9.3,performance:10.0,safety:8.5,reliability:7.0,comfort:9.0,tech:9.5,value:6.0},tags:["supercar","performance","luxury","awd","hybrid","v8"],
+    packages:[{name:"AMG Night Package II",price:1450,desc:"Matte black trim, dark chrome, black exhaust tips"},{name:"AMG Aerodynamics",price:2950,desc:"Front splitter, side skirts, fixed rear wing"}],
+    features:["831 hp combined","0-60 in 2.9s","AMG RIDE CONTROL+ air suspension","Drift mode"],
+    usedVerdict:"Depreciation steep. Buy for the experience, not investment. Performance is unmatched in class.",annualInsurance:5200,annualFuel:4100,annualMaint:3500},
+  {id:4,year:2025,make:"Chevrolet",model:"Corvette",trim:"Stingray 3LT Z51",type:"Sports Car",msrp:78595,marketPrice:76000,usedPrice:68000,
+    hp:495,torque:470,engine:"6.2L V8",transmission:"8-Speed DCT",drivetrain:"RWD",fuelEconomy:"16/24 mpg",weight:3647,cargo:12.6,seating:2,warranty:"3yr/36k mi",
+    scores:{overall:9.2,performance:9.6,safety:8.0,reliability:8.0,comfort:8.0,tech:8.5,value:9.5},tags:["sports","performance","rwd","v8","mid-engine"],
+    packages:[{name:"Z51 Performance",price:7995,desc:"Performance exhaust, electronic LSD, Brembo brakes, aero"},{name:"Magnetic Ride Control",price:1895,desc:"Magnetorheological adaptive dampers"}],
+    features:["Mid-engine layout","Performance data recorder","Front lift system"],
+    usedVerdict:"Superb value. Mid-engine supercar performance at a fraction of the price. Best performance-per-dollar available.",annualInsurance:2400,annualFuel:3000,annualMaint:900},
+  {id:5,year:2025,make:"Audi",model:"RS6",trim:"Avant Performance",type:"Wagon",msrp:128900,marketPrice:132000,usedPrice:118000,
+    hp:621,torque:627,engine:"4.0L Twin-Turbo V8",transmission:"8-Speed Tiptronic",drivetrain:"AWD",fuelEconomy:"15/22 mpg",weight:4960,cargo:30.0,seating:5,warranty:"4yr/50k mi",
+    scores:{overall:9.1,performance:9.7,safety:8.5,reliability:7.0,comfort:9.0,tech:9.2,value:6.5},tags:["wagon","performance","luxury","awd","v8","rare"],
+    packages:[{name:"Black Optic",price:2500,desc:"Gloss black trim, black rings, privacy glass"},{name:"Dynamic Plus",price:6500,desc:"Ceramic brakes, sport diff, dynamic ride control"},{name:"Comfort/Sound",price:3200,desc:"B&O 3D sound, massage seats, ventilated seats"}],
+    features:["quattro AWD","RS adaptive air suspension","Virtual cockpit plus","Matrix LED headlights"],
+    usedVerdict:"Niche collectible. RS 6 Avants are rare and hold value extremely well. A practical supercar.",annualInsurance:4100,annualFuel:3600,annualMaint:2200},
+  {id:6,year:2025,make:"Porsche",model:"Cayenne",trim:"S",type:"SUV",msrp:93300,marketPrice:92000,usedPrice:82000,
+    hp:468,torque:442,engine:"4.0L Twin-Turbo V8",transmission:"8-Speed Tiptronic",drivetrain:"AWD",fuelEconomy:"17/22 mpg",weight:4850,cargo:27.2,seating:5,warranty:"4yr/50k mi",
+    scores:{overall:8.9,performance:9.0,safety:9.0,reliability:8.0,comfort:9.2,tech:9.0,value:7.5},tags:["suv","luxury","performance","awd","v8"],
+    packages:[{name:"Sport Package",price:4850,desc:"PASM sport suspension, sport exhaust, GT sport steering"},{name:"Luxury Package",price:5200,desc:"Ventilated seats, 4-zone climate, soft-close doors"}],
+    features:["PASM","12.6\" touchscreen","HD Matrix LED headlights","Porsche Traction Management"],
+    usedVerdict:"Good used buy if CPO. V8 models depreciate more than base. Budget for Porsche-level maintenance.",annualInsurance:3500,annualFuel:3200,annualMaint:1600},
+  {id:7,year:2025,make:"BMW",model:"X5",trim:"xDrive40i M Sport",type:"SUV",msrp:71600,marketPrice:69500,usedPrice:60000,
+    hp:375,torque:398,engine:"3.0L Turbo I6",transmission:"8-Speed Auto",drivetrain:"AWD",fuelEconomy:"21/26 mpg",weight:4842,cargo:33.9,seating:5,warranty:"4yr/50k mi",
+    scores:{overall:8.6,performance:8.3,safety:9.0,reliability:7.0,comfort:9.2,tech:9.0,value:7.5},tags:["suv","luxury","awd","family"],
+    packages:[{name:"Premium Package",price:3200,desc:"Panoramic roof, ambient lighting, comfort access"},{name:"M Sport Package",price:4200,desc:"M suspension, M brakes, aero body kit"}],
+    features:["xDrive AWD","12.3\" digital cluster","14.9\" touchscreen","Harman Kardon audio"],
+    usedVerdict:"Good used buy if CPO. Out-of-warranty repairs expensive. M Sport holds value best.",annualInsurance:2800,annualFuel:2600,annualMaint:1400},
+  {id:8,year:2025,make:"Mercedes-Benz",model:"GLE",trim:"AMG GLE 63 S",type:"SUV",msrp:118900,marketPrice:115000,usedPrice:98000,
+    hp:603,torque:627,engine:"4.0L Twin-Turbo V8",transmission:"9G-TRONIC",drivetrain:"AWD",fuelEconomy:"15/19 mpg",weight:5390,cargo:33.3,seating:5,warranty:"4yr/50k mi",
+    scores:{overall:8.8,performance:9.2,safety:9.0,reliability:7.0,comfort:9.5,tech:9.2,value:6.5},tags:["suv","luxury","performance","awd","v8"],
+    packages:[{name:"AMG Night Package",price:1500,desc:"Black trim, dark wheels, black exhaust tips"},{name:"Energizing Comfort",price:1100,desc:"Energizing comfort system, Air Balance fragrance"}],
+    features:["AMG Performance 4MATIC+","AMG RIDE CONTROL+","Burmester 3D surround","MBUX with AR"],
+    usedVerdict:"Steep depreciation makes 2-3yr old examples compelling. Budget for AMG-level maintenance costs.",annualInsurance:4200,annualFuel:4000,annualMaint:2800},
+  {id:9,year:2025,make:"Tesla",model:"Model S",trim:"Plaid",type:"Sedan",msrp:89990,marketPrice:86000,usedPrice:72000,
+    hp:1020,torque:1050,engine:"Tri Motor Electric",transmission:"Single-Speed",drivetrain:"AWD",fuelEconomy:"120 MPGe",weight:4766,cargo:28.0,seating:5,warranty:"4yr/50k (8yr/150k battery)",
+    scores:{overall:8.8,performance:9.8,safety:9.5,reliability:6.5,comfort:8.0,tech:9.8,value:8.0},tags:["ev","electric","performance","luxury","awd"],
+    packages:[{name:"Full Self-Driving",price:12000,desc:"Autopilot, auto lane change, summon, FSD Beta"},{name:"Enhanced Autopilot",price:6000,desc:"Auto lane change, autopark, summon"}],
+    features:["17\" touchscreen","0-60 in 1.99s","Yoke steering available","Over-the-air updates","396 mi range"],
+    usedVerdict:"Solid used buy. Plaid performance is unmatched at the price. Battery degradation minimal. Heavy depreciation = value.",annualInsurance:3000,annualFuel:800,annualMaint:500},
+  {id:10,year:2025,make:"Porsche",model:"Taycan",trim:"Turbo S",type:"EV",msrp:192400,marketPrice:180000,usedPrice:145000,
+    hp:750,torque:774,engine:"Dual Motor Electric",transmission:"2-Speed (rear)",drivetrain:"AWD",fuelEconomy:"79 MPGe",weight:5265,cargo:14.3,seating:5,warranty:"4yr/50k (8yr/100k battery)",
+    scores:{overall:9.2,performance:9.7,safety:9.0,reliability:7.8,comfort:9.2,tech:9.5,value:6.5},tags:["ev","electric","luxury","performance","awd"],
+    packages:[{name:"Sport Chrono",price:1130,desc:"Mode switch, Sport Plus, launch control"},{name:"Performance Battery Plus",price:0,desc:"Included: 93.4 kWh battery"}],
+    features:["Curved 16.8\" display","0-60 in 2.4s","800V architecture","Adaptive air suspension","Porsche Driver Experience"],
+    usedVerdict:"Outstanding used buy. Heavy depreciation. Turbo S under $150k is phenomenal value. Porsche EV reliability solid.",annualInsurance:4800,annualFuel:1000,annualMaint:1200},
+  {id:11,year:2025,make:"Lucid",model:"Air",trim:"Grand Touring",type:"EV",msrp:138000,marketPrice:120000,usedPrice:95000,
+    hp:819,torque:885,engine:"Dual Motor Electric",transmission:"Single-Speed",drivetrain:"AWD",fuelEconomy:"131 MPGe",weight:5236,cargo:32.0,seating:5,warranty:"4yr/50k (8yr/100k battery)",
+    scores:{overall:8.8,performance:9.5,safety:9.0,reliability:6.0,comfort:9.5,tech:9.5,value:7.0},tags:["ev","electric","luxury","performance","awd"],
+    packages:[{name:"Stealth Appearance",price:3000,desc:"Matte black trim, dark wheels, blacked-out badges"}],
+    features:["34\" curved Glass Cockpit","516 mi range (Pure)","900V architecture","Dolby Atmos audio"],
+    usedVerdict:"Risky but compelling. 30-40% depreciation year one. Tech and range are extraordinary.",annualInsurance:3600,annualFuel:900,annualMaint:800},
+  {id:12,year:2025,make:"Toyota",model:"Supra",trim:"3.0 Premium",type:"Sports Car",msrp:58250,marketPrice:56500,usedPrice:52000,
+    hp:382,torque:368,engine:"3.0L Turbo I6",transmission:"8-Speed Auto",drivetrain:"RWD",fuelEconomy:"22/30 mpg",weight:3400,cargo:10.2,seating:2,warranty:"3yr/36k mi",
+    scores:{overall:8.7,performance:9.5,safety:7.8,reliability:8.0,comfort:7.5,tech:8.2,value:7.5},tags:["sports","performance","turbo","coupe","rwd"],
+    packages:[{name:"Driver Assist",price:1195,desc:"Adaptive cruise, lane departure, auto high beams"},{name:"Premium Package",price:2460,desc:"HUD, wireless charging, JBL 12-speaker"}],
+    features:["Active differential","Adaptive suspension","Launch control","Sport mode"],
+    usedVerdict:"Decent used buy. Values have stabilized. Manual trans models may appreciate. Low volume keeps supply tight.",annualInsurance:2200,annualFuel:2200,annualMaint:800},
+  {id:13,year:2025,make:"Ford",model:"Mustang",trim:"GT Premium",type:"Coupe",msrp:46015,marketPrice:47500,usedPrice:42000,
+    hp:480,torque:418,engine:"5.0L Coyote V8",transmission:"6-Speed Manual",drivetrain:"RWD",fuelEconomy:"15/24 mpg",weight:3812,cargo:13.5,seating:4,warranty:"3yr/36k mi",
+    scores:{overall:8.6,performance:9.3,safety:7.5,reliability:8.0,comfort:7.5,tech:8.0,value:8.8},tags:["sports","performance","rwd","v8","muscle","coupe"],
+    packages:[{name:"Performance Package",price:3695,desc:"MagneRide dampers, Brembo brakes, 3.73 Torsen diff"},{name:"Active Exhaust",price:895,desc:"Quad-tip active valve exhaust with drive modes"}],
+    features:["5.0L Coyote V8","Launch control","Line lock","Track Apps"],
+    usedVerdict:"Great used buy. V8 Mustangs are iconic. Manual trans holds value best. Check for mods.",annualInsurance:2000,annualFuel:3200,annualMaint:700},
+  {id:14,year:2025,make:"Genesis",model:"GV80",trim:"3.5T Sport Prestige",type:"SUV",msrp:75050,marketPrice:71000,usedPrice:62000,
+    hp:375,torque:391,engine:"3.5L Twin-Turbo V6",transmission:"8-Speed Auto",drivetrain:"AWD",fuelEconomy:"18/23 mpg",weight:5100,cargo:34.0,seating:5,warranty:"5yr/60k mi",
+    scores:{overall:8.8,performance:8.5,safety:9.0,reliability:8.2,comfort:9.5,tech:9.0,value:8.5},tags:["suv","luxury","awd","performance","value"],
+    packages:[{name:"Prestige Package",price:0,desc:"Included: HUD, 3D cluster, Lexicon 3D audio, HDMI input"}],
+    features:["14.5\" OLED display","Fingerprint auth","Face Connect","Remote smart parking","E-supercharger"],
+    usedVerdict:"Outstanding used buy. Competes with $100k+ SUVs. Massive depreciation = incredible value. 5yr warranty class-leading.",annualInsurance:2600,annualFuel:2800,annualMaint:900},
+  {id:15,year:2025,make:"Lexus",model:"RX",trim:"500h F SPORT Performance",type:"SUV",msrp:63650,marketPrice:64500,usedPrice:57000,
+    hp:366,torque:406,engine:"2.4L Turbo Hybrid",transmission:"6-Speed Auto + eAxle",drivetrain:"AWD",fuelEconomy:"28/27 mpg",weight:4475,cargo:29.6,seating:5,warranty:"4yr/50k mi",
+    scores:{overall:8.7,performance:8.5,safety:9.0,reliability:9.0,comfort:9.0,tech:8.5,value:7.8},tags:["suv","luxury","hybrid","awd","performance"],
+    packages:[{name:"Luxury Package",price:3600,desc:"Semi-aniline leather, panoramic roof, Mark Levinson audio"}],
+    features:["14\" touchscreen","Lexus Safety System+ 3.0","DIRECT4 AWD","Adaptive variable suspension"],
+    usedVerdict:"Strong used buy. Lexus reliability is legendary. RX holds value well. 500h is the enthusiast's pick.",annualInsurance:2400,annualFuel:1800,annualMaint:600},
+  {id:16,year:2025,make:"Honda",model:"Civic",trim:"Type R",type:"Coupe",msrp:44890,marketPrice:48000,usedPrice:43000,
+    hp:315,torque:310,engine:"2.0L Turbo I4",transmission:"6-Speed Manual",drivetrain:"FWD",fuelEconomy:"22/28 mpg",weight:3118,cargo:25.0,seating:5,warranty:"3yr/36k mi",
+    scores:{overall:8.8,performance:9.2,safety:8.5,reliability:9.0,comfort:7.5,tech:7.8,value:8.5},tags:["sports","performance","fwd","manual","hatchback"],
+    packages:[{name:"Carbon Fiber Package",price:3600,desc:"Carbon hood, mirror covers, rear wing endplate"}],
+    features:["Rev-match system","Brembo brakes","Limited-slip diff","Adaptive dampers","LogR data logger"],
+    usedVerdict:"Hot market. Type Rs still trade above MSRP. Low production keeps values high. Excellent track-day car.",annualInsurance:1800,annualFuel:1800,annualMaint:400},
+  {id:17,year:2025,make:"Rivian",model:"R1S",trim:"Dual Motor",type:"EV",msrp:79900,marketPrice:76000,usedPrice:65000,
+    hp:533,torque:610,engine:"Dual Motor Electric",transmission:"Single-Speed",drivetrain:"AWD",fuelEconomy:"100 MPGe",weight:6560,cargo:104.7,seating:7,warranty:"5yr/60k (8yr/175k battery)",
+    scores:{overall:8.5,performance:8.8,safety:9.0,reliability:6.5,comfort:8.5,tech:9.2,value:7.5},tags:["ev","electric","suv","awd","offroad","adventure"],
+    packages:[{name:"Tow Package",price:1200,desc:"7,700 lb tow, integrated hitch, trailer sway control"}],
+    features:["15.6\" touchscreen","Gear Guard security","Camp Mode","3ft wading depth"],
+    usedVerdict:"Risky used buy. New brand, limited service. Compelling if you accept early-adopter issues.",annualInsurance:2800,annualFuel:900,annualMaint:600},
+  {id:18,year:2025,make:"Ford",model:"Bronco",trim:"Raptor",type:"SUV",msrp:87895,marketPrice:90000,usedPrice:82000,
+    hp:418,torque:440,engine:"3.0L EcoBoost V6",transmission:"10-Speed Auto",drivetrain:"4WD",fuelEconomy:"15/16 mpg",weight:5733,cargo:32.2,seating:5,warranty:"3yr/36k mi",
+    scores:{overall:8.3,performance:8.8,safety:7.5,reliability:7.0,comfort:7.0,tech:7.5,value:7.0},tags:["suv","offroad","4wd","performance","adventure"],
+    packages:[{name:"Raptor Package",price:0,desc:"FOX Live Valve shocks, 37\" tires, front/rear lockers, Dana 50 axles"}],
+    features:["12\" SYNC 4","360 camera","Trail one-pedal drive","Removable doors/roof"],
+    usedVerdict:"Premium market. Trade at or above MSRP. Limited production and cult following.",annualInsurance:2600,annualFuel:3800,annualMaint:1200},
+  {id:19,year:2025,make:"Lexus",model:"IS",trim:"IS 500 F SPORT Performance",type:"Sedan",msrp:60150,marketPrice:55000,usedPrice:48000,
+    hp:472,torque:395,engine:"5.0L V8",transmission:"8-Speed Auto",drivetrain:"RWD",fuelEconomy:"17/25 mpg",weight:3891,cargo:10.8,seating:5,warranty:"4yr/50k mi",
+    scores:{overall:8.5,performance:9.0,safety:8.5,reliability:9.0,comfort:8.0,tech:7.5,value:8.0},tags:["sedan","performance","luxury","rwd","v8","reliable"],
+    packages:[{name:"Dynamic Handling",price:3025,desc:"Torsen LSD, adaptive suspension, performance spoiler"}],
+    features:["Mark Levinson audio","Yamaha-tuned exhaust","Naturally aspirated V8"],
+    usedVerdict:"Excellent used buy. One of the last NA V8 sport sedans. Lexus reliability + V8 = modern classic.",annualInsurance:2200,annualFuel:2800,annualMaint:500},
+  {id:20,year:2025,make:"Volkswagen",model:"Golf R",trim:"Golf R",type:"Coupe",msrp:46490,marketPrice:45000,usedPrice:40000,
+    hp:315,torque:295,engine:"2.0L Turbo I4",transmission:"7-Speed DSG",drivetrain:"AWD",fuelEconomy:"22/30 mpg",weight:3417,cargo:19.9,seating:5,warranty:"4yr/50k mi",
+    scores:{overall:8.5,performance:8.8,safety:8.5,reliability:7.5,comfort:8.0,tech:8.5,value:8.0},tags:["performance","hatchback","awd","daily","sleeper"],
+    packages:[{name:"Drift/Special Mode",price:0,desc:"Included: Drift mode, Nurburgring mode, rear-biased torque split"}],
+    features:["10\" touchscreen","4Motion AWD","Torque vectoring rear diff","DCC adaptive dampers"],
+    usedVerdict:"Good used buy. Ultimate daily / hot hatch. Sleeper looks, superb chassis.",annualInsurance:1800,annualFuel:1900,annualMaint:800},
+  {id:21,year:2025,make:"BMW",model:"i4",trim:"M50 xDrive",type:"EV",msrp:69900,marketPrice:66000,usedPrice:57000,
+    hp:536,torque:586,engine:"Dual Motor Electric",transmission:"Single-Speed",drivetrain:"AWD",fuelEconomy:"97 MPGe",weight:5071,cargo:9.8,seating:5,warranty:"4yr/50k (8yr/100k battery)",
+    scores:{overall:8.6,performance:9.2,safety:8.5,reliability:7.0,comfort:8.5,tech:9.0,value:7.5},tags:["ev","electric","performance","luxury","awd"],
+    packages:[{name:"M Sport Pro",price:3500,desc:"Adaptive M suspension, variable sport steering, M brakes"}],
+    features:["14.9\" curved display","0-60 in 3.7s","IconicSounds Electric","Harman Kardon surround"],
+    usedVerdict:"Good used buy. Steep depreciation = value play. Performance is phenomenal.",annualInsurance:2600,annualFuel:800,annualMaint:900},
+  {id:22,year:2025,make:"Mercedes-Benz",model:"C-Class",trim:"AMG C 63 S E Performance",type:"Sedan",msrp:85900,marketPrice:83000,usedPrice:null,
+    hp:671,torque:752,engine:"2.0L Turbo I4 + Electric",transmission:"9G-TRONIC",drivetrain:"AWD",fuelEconomy:"20/24 mpg (PHEV)",weight:4500,cargo:11.8,seating:5,warranty:"4yr/50k mi",
+    scores:{overall:8.7,performance:9.3,safety:9.0,reliability:7.0,comfort:8.8,tech:9.5,value:6.8},tags:["sedan","performance","luxury","hybrid","awd"],
+    packages:[{name:"AMG Night Package II",price:1200,desc:"Black chrome, dark accents, tinted lights"},{name:"AMG Aerodynamic Package",price:1800,desc:"Fixed rear wing, front splitter"}],
+    features:["671 hp hybrid system","AMG DYNAMIC PLUS","MBUX Hyperscreen available","Electrically assisted turbo"],
+    usedVerdict:"Too new for used. Expect significant depreciation. The hybrid C 63 is controversial but genuinely fast.",annualInsurance:3400,annualFuel:2200,annualMaint:2000},
+  {id:23,year:2025,make:"Acura",model:"Integra",trim:"Type S",type:"Coupe",msrp:51900,marketPrice:53000,usedPrice:47000,
+    hp:320,torque:310,engine:"2.0L Turbo VTEC I4",transmission:"6-Speed Manual",drivetrain:"FWD",fuelEconomy:"21/28 mpg",weight:3230,cargo:24.3,seating:5,warranty:"4yr/50k mi",
+    scores:{overall:8.5,performance:8.8,safety:8.5,reliability:8.5,comfort:8.0,tech:8.0,value:8.0},tags:["performance","fwd","manual","hatchback","vtec"],
+    packages:[{name:"Type S Package",price:0,desc:"Included: LSD, adaptive dampers, Brembo, rev-match"}],
+    features:["9\" touchscreen","ELS Studio 3D audio","VTEC turbo engine","AcuraWatch suite"],
+    usedVerdict:"Good used buy. Manual-only keeps demand high. Fun daily driver. Worthy successor to the name.",annualInsurance:1900,annualFuel:1800,annualMaint:500},
+  {id:24,year:2025,make:"Jeep",model:"Wrangler",trim:"Rubicon 392",type:"SUV",msrp:83190,marketPrice:80000,usedPrice:72000,
+    hp:470,torque:470,engine:"6.4L HEMI V8",transmission:"8-Speed Auto",drivetrain:"4WD",fuelEconomy:"13/17 mpg",weight:5165,cargo:31.7,seating:5,warranty:"3yr/36k mi",
+    scores:{overall:8.0,performance:8.5,safety:7.5,reliability:6.5,comfort:7.0,tech:7.0,value:6.5},tags:["suv","offroad","4wd","v8","adventure","iconic"],
+    packages:[{name:"Xtreme Recon",price:3995,desc:"35\" mud-terrain tires, 4.88 axle, 1.5\" lift"}],
+    features:["Removable doors/roof/windshield","Dana 44 axles","Tru-Lok e-lockers","Fox shocks"],
+    usedVerdict:"Collector potential. The 392 was discontinued — V8 Wranglers will only appreciate.",annualInsurance:2800,annualFuel:4200,annualMaint:1400},
+  {id:25,year:2026,make:"Toyota",model:"4Runner",trim:"TRD Pro",type:"SUV",msrp:66995,marketPrice:70000,usedPrice:null,
+    hp:326,torque:465,engine:"2.4L Turbo Hybrid I4",transmission:"8-Speed Auto",drivetrain:"4WD",fuelEconomy:"23/24 mpg",weight:4825,cargo:41.7,seating:5,warranty:"3yr/36k mi",
+    scores:{overall:8.4,performance:8.0,safety:8.5,reliability:9.0,comfort:7.8,tech:8.0,value:7.5},tags:["suv","offroad","4wd","hybrid","adventure"],
+    packages:[{name:"TRD Pro Package",price:0,desc:"FOX shocks, TRD skid plate, roof rack, stabilizer disconnect"}],
+    features:["Multi-terrain monitor","Crawl control","Locking rear diff","Body-on-frame"],
+    usedVerdict:"Too new for used. Previous gen held value insanely well. Investment vehicle.",annualInsurance:2200,annualFuel:2200,annualMaint:600},
+  {id:26,year:2025,make:"Mazda",model:"MX-5 Miata",trim:"Grand Touring",type:"Sports Car",msrp:38150,marketPrice:37500,usedPrice:33000,
+    hp:181,torque:151,engine:"2.0L Skyactiv-G I4",transmission:"6-Speed Manual",drivetrain:"RWD",fuelEconomy:"26/34 mpg",weight:2341,cargo:4.6,seating:2,warranty:"3yr/36k mi",
+    scores:{overall:8.5,performance:8.5,safety:7.5,reliability:9.2,comfort:7.0,tech:7.0,value:9.0},tags:["sports","rwd","manual","convertible","lightweight"],
+    packages:[{name:"BBS/Brembo Package",price:3200,desc:"BBS forged wheels, Brembo brakes, Bilstein dampers"}],
+    features:["Bose 9-speaker","Kinematic Posture Control","LSD","Soft top in 5 sec"],
+    usedVerdict:"Fantastic used buy. Miatas hold value and are bulletproof. Purest driving experience money can buy.",annualInsurance:1200,annualFuel:1400,annualMaint:400},
+  {id:27,year:2025,make:"Genesis",model:"G70",trim:"3.3T Sport Prestige",type:"Sedan",msrp:52300,marketPrice:49500,usedPrice:42000,
+    hp:365,torque:376,engine:"3.3L Twin-Turbo V6",transmission:"8-Speed Auto",drivetrain:"AWD",fuelEconomy:"18/25 mpg",weight:4000,cargo:10.8,seating:5,warranty:"5yr/60k mi",
+    scores:{overall:8.6,performance:8.8,safety:9.0,reliability:8.5,comfort:8.5,tech:8.5,value:9.2},tags:["luxury","sedan","awd","performance","value"],
+    packages:[{name:"Prestige Package",price:0,desc:"HUD, surround view, Lexicon audio, suede headliner"}],
+    features:["10.25\" touchscreen","Digital key","Remote smart parking","Highway Driving Assist II"],
+    usedVerdict:"Outstanding used buy. Best value in luxury sports sedan. Massive depreciation = incredible deals.",annualInsurance:2000,annualFuel:2400,annualMaint:600},
+  {id:28,year:2025,make:"Ram",model:"1500",trim:"TRX",type:"Truck",msrp:88045,marketPrice:92000,usedPrice:84000,
+    hp:702,torque:650,engine:"6.2L Supercharged HEMI V8",transmission:"8-Speed Auto",drivetrain:"4WD",fuelEconomy:"10/14 mpg",weight:6350,cargo:61.5,seating:5,warranty:"3yr/36k mi",
+    scores:{overall:8.2,performance:9.0,safety:8.0,reliability:7.0,comfort:8.5,tech:8.0,value:6.5},tags:["truck","performance","4wd","v8","supercharged"],
+    packages:[{name:"Carbon Fiber Package",price:3295,desc:"Carbon fiber interior trim, carbon hood scoop"},{name:"TRX Level 2",price:5100,desc:"Carbon hood, beadlock wheels, leather/suede interior"}],
+    features:["702 hp Hellcat V8","Bilstein remote reservoir shocks","12\" Uconnect 5","Launch control"],
+    usedVerdict:"Collector item. The TRX was discontinued. 702hp truck will only appreciate. Buy now.",annualInsurance:3800,annualFuel:5500,annualMaint:1800},
+  {id:29,year:2025,make:"Toyota",model:"GR86",trim:"Premium",type:"Coupe",msrp:33250,marketPrice:34000,usedPrice:30000,
+    hp:228,torque:184,engine:"2.4L Boxer I4",transmission:"6-Speed Manual",drivetrain:"RWD",fuelEconomy:"20/27 mpg",weight:2811,cargo:6.3,seating:4,warranty:"3yr/36k mi",
+    scores:{overall:8.3,performance:8.5,safety:7.5,reliability:8.5,comfort:6.5,tech:7.0,value:9.0},tags:["sports","rwd","manual","coupe","lightweight","track"],
+    packages:[{name:"Performance Package",price:1200,desc:"Brembo brakes, SACHS dampers, LSD"}],
+    features:["8\" touchscreen","Track mode","Torsen LSD","2,811 lbs curb weight"],
+    usedVerdict:"Great used buy. Pure sports car at accessible price. Most fun per dollar on the market.",annualInsurance:1400,annualFuel:1600,annualMaint:400},
+  {id:30,year:2025,make:"Ford",model:"F-150",trim:"Raptor R",type:"Truck",msrp:112195,marketPrice:115000,usedPrice:105000,
+    hp:720,torque:640,engine:"5.2L Supercharged V8 (Predator)",transmission:"10-Speed Auto",drivetrain:"4WD",fuelEconomy:"10/15 mpg",weight:5950,cargo:52.8,seating:5,warranty:"3yr/36k mi",
+    scores:{overall:8.5,performance:9.5,safety:8.0,reliability:7.5,comfort:8.0,tech:8.0,value:7.0},tags:["truck","performance","4wd","v8","supercharged","offroad"],
+    packages:[{name:"Raptor R Package",price:0,desc:"Predator V8, FOX 3.1 live valve shocks, 37\" BFGoodrich KO2 tires"}],
+    features:["720 hp Predator V8","FOX 3.1 Live Valve","12\" SYNC 4","Pro Trailer Backup Assist"],
+    usedVerdict:"Investment truck. Raptor R is the most powerful F-150 ever. Limited production ensures appreciation.",annualInsurance:3600,annualFuel:5800,annualMaint:1600},
+];
+
+// ============ UPCOMING / CONCEPT ============
+const UPCOMING=[
+  {id:100,year:2027,make:"Tesla",model:"Roadster",trim:"Founders Series",type:"Sports Car",msrp:250000,hp:1000,engine:"Tri Motor Electric",drivetrain:"AWD",weight:4400,status:"Announced",expectedDate:"Late 2026 / Early 2027",description:"Sub-2-second 0-60. 250+ mph top speed. 620-mile range. SpaceX cold-air thrusters rumored. Repeatedly delayed since 2017."},
+  {id:101,year:2026,make:"Porsche",model:"718 Boxster",trim:"Electric",type:"Sports Car",msrp:85000,hp:600,engine:"Dual Motor Electric",drivetrain:"AWD",weight:3900,status:"Confirmed",expectedDate:"Q2 2026 deliveries",description:"All-electric successor to 718 Boxster/Cayman. SSP Sport platform. 800V. Porsche driving dynamics with mid-engine-feel weight distribution."},
+  {id:102,year:2026,make:"BMW",model:"Neue Klasse",trim:"iX3",type:"SUV",msrp:58000,hp:400,engine:"Dual Motor Electric",drivetrain:"AWD",weight:4600,status:"Confirmed",expectedDate:"Production started Q3 2025",description:"Ground-up EV architecture. 6th-gen eDrive: 30% more range, 30% faster charging. Full-windshield HUD. Round design inspired by 2002."},
+  {id:103,year:2026,make:"Mercedes-Benz",model:"CLA EV",trim:"AMG",type:"Sedan",msrp:70000,hp:500,engine:"Dual Motor Electric (MB.EA)",drivetrain:"AWD",weight:4200,status:"Confirmed",expectedDate:"2026 deliveries",description:"Mercedes' most important EV launch. MMA platform. 800V. MB.OS operating system. Level 3 autonomous. 466+ mile range. 15 min to 80%."},
+  {id:104,year:2026,make:"Rivian",model:"R2",trim:"Dual Motor",type:"SUV",msrp:45000,hp:400,engine:"Dual Motor Electric",drivetrain:"AWD",weight:4800,status:"Confirmed",expectedDate:"H1 2026",description:"Rivian's mass-market play. Smaller, more affordable than R1S. New in-house drive units. 300+ mile range. Most important vehicle for profitability."},
+  {id:105,year:2027,make:"Chevrolet",model:"Corvette",trim:"ZR1 Hybrid",type:"Sports Car",msrp:180000,hp:1200,engine:"Electric + LT7 V8 Hybrid",drivetrain:"AWD",weight:3800,status:"Rumored",expectedDate:"2027-2028",description:"Fully electric or heavily hybridized ZR1 successor. Ultium platform adapted for supercar use. Could challenge hypercars at fraction of the price."},
+  {id:106,year:2026,make:"Hyundai",model:"Ioniq 7",trim:"Long Range AWD",type:"SUV",msrp:65000,hp:400,engine:"Dual Motor Electric",drivetrain:"AWD",weight:5800,status:"Confirmed",expectedDate:"H2 2026",description:"Full-size 3-row electric SUV. E-GMP platform. Lounge interior with swivel seats. 800V ultra-fast charging. Hyundai's answer to Model X."},
+  {id:107,year:2026,make:"Audi",model:"A6 e-tron",trim:"S6 e-tron",type:"Sedan",msrp:95000,hp:496,engine:"Dual Motor Electric",drivetrain:"AWD",weight:5000,status:"Confirmed",expectedDate:"H2 2025 (US)",description:"PPE platform shared with Porsche Macan EV. 800V, 270kW fast charging (10-80% in 21 min). OLED headlights can project video. 466 miles range."},
+  {id:108,year:2027,make:"Porsche",model:"Cayenne",trim:"EV",type:"SUV",msrp:110000,hp:600,engine:"Dual Motor Electric",drivetrain:"AWD",weight:5400,status:"Confirmed",expectedDate:"2026 reveal, 2027 deliveries",description:"All-electric Cayenne on SSP platform alongside ICE model. Porsche promises no compromise on driving dynamics. 800V architecture."},
+];
+
+// ============ MARKETPLACE ============
+const MARKETPLACE=[
+  {id:200,year:2022,make:"Lamborghini",model:"Huracan EVO",trim:"Spyder",origMsrp:287400,askingPrice:89950,mileage:12400,vin:"ZHWUT4ZF5NLA12345",color:"Giallo Orion",interior:"Black Alcantara",engine:"5.2L V10",hp:631,transmission:"7-Speed DCT",drivetrain:"AWD",dealer:"Newport European",address:"300 Pacific Coast Hwy, Newport Beach, CA",lat:33.6189,lng:-117.9298,daysOnMarket:18,condition:"Excellent",features:["Carbon ceramic brakes","Lifting system","Sport exhaust","Rear camera"],carfax:"Clean title, 1 owner, all dealer serviced"},
+  {id:201,year:2021,make:"Ferrari",model:"F8 Tributo",trim:"Coupe",origMsrp:280000,askingPrice:94500,mileage:8200,vin:"ZFF92LLA5M0265432",color:"Rosso Corsa",interior:"Tan Leather",engine:"3.9L Twin-Turbo V8",hp:710,transmission:"7-Speed DCT",drivetrain:"RWD",dealer:"Irvine Auto Collection",address:"17352 Von Karman Ave, Irvine, CA",lat:33.6846,lng:-117.8265,daysOnMarket:7,condition:"Excellent",features:["Carbon sport seats","Front lift","JBL premium sound"],carfax:"Clean title, 2 owners, no accidents"},
+  {id:202,year:2021,make:"Bentley",model:"Continental GT",trim:"V8 Mulliner",origMsrp:325000,askingPrice:92750,mileage:18500,vin:"SCBCG2ZG5MC100234",color:"Beluga Black",interior:"Magnolia/Beluga",engine:"4.0L Twin-Turbo V8",hp:542,transmission:"8-Speed DCT",drivetrain:"AWD",dealer:"Bentley Newport Beach",address:"1540 Jamboree Rd, Newport Beach, CA",lat:33.6603,lng:-117.8554,daysOnMarket:32,condition:"Very Good",features:["Mulliner spec","Naim audio","Night vision","Touring specification"],carfax:"Clean title, 1 owner, full Bentley service"},
+  {id:203,year:2022,make:"Aston Martin",model:"DB11",trim:"V8 Volante",origMsrp:272000,askingPrice:87900,mileage:9800,vin:"SCFRMFAW3NGL12789",color:"Magnetic Silver",interior:"Obsidian Black",engine:"4.0L Twin-Turbo V8",hp:503,transmission:"8-Speed Auto",drivetrain:"RWD",dealer:"Monarch Luxury Cars",address:"8876 Research Dr, Irvine, CA",lat:33.6485,lng:-117.7430,daysOnMarket:45,condition:"Excellent",features:["Carbon fiber exterior","B&O audio","360 camera"],carfax:"Clean title, 1 owner, no accidents"},
+  {id:204,year:2020,make:"Rolls-Royce",model:"Ghost",trim:"EWB",origMsrp:382000,askingPrice:99500,mileage:22100,vin:"SCA664S58LUX00456",color:"Midnight Sapphire",interior:"Seashell White",engine:"6.75L Twin-Turbo V12",hp:563,transmission:"8-Speed Auto",drivetrain:"AWD",dealer:"O'Gara Coach",address:"3636 E Coast Hwy, Corona del Mar, CA",lat:33.5996,lng:-117.8703,daysOnMarket:14,condition:"Excellent",features:["Starlight headliner","Rear theater","Bespoke audio","Picnic tables"],carfax:"Clean title, 1 owner, Rolls-Royce certified"},
+  {id:205,year:2022,make:"McLaren",model:"720S",trim:"Performance",origMsrp:315000,askingPrice:95900,mileage:6100,vin:"SBM14DCA7NW012678",color:"Papaya Spark",interior:"Carbon Black",engine:"4.0L Twin-Turbo V8",hp:710,transmission:"7-Speed SSG",drivetrain:"RWD",dealer:"McLaren Newport Beach",address:"2300 Harbor Blvd, Costa Mesa, CA",lat:33.6615,lng:-117.9088,daysOnMarket:22,condition:"Like New",features:["MSO carbon pack","Track telemetry","B&W audio","Nose lift"],carfax:"Clean title, 1 owner, all McLaren serviced"},
+  {id:206,year:2021,make:"Porsche",model:"911 Turbo S",trim:"Cabriolet",origMsrp:280000,askingPrice:97500,mileage:11200,vin:"WP0CD2A91MS234567",color:"GT Silver",interior:"Black/Bordeaux",engine:"3.8L Twin-Turbo Flat-6",hp:640,transmission:"8-Speed PDK",drivetrain:"AWD",dealer:"Porsche Newport Beach",address:"580 W 17th St, Costa Mesa, CA",lat:33.6372,lng:-117.9225,daysOnMarket:11,condition:"Excellent",features:["Sport Chrono","PCCB ceramics","Sport exhaust","Rear axle steering"],carfax:"Clean title, 1 owner, CPO eligible"},
+  {id:207,year:2022,make:"Mercedes-Benz",model:"AMG GT",trim:"Black Series",origMsrp:325000,askingPrice:99900,mileage:3200,vin:"WDDYJ7KA3NA012890",color:"Designo Magno Grey",interior:"Nappa Black/Orange",engine:"4.0L Twin-Turbo V8",hp:720,transmission:"7-Speed AMG DCT",drivetrain:"RWD",dealer:"Fletcher Jones Motorcars",address:"3300 Jamboree Rd, Newport Beach, CA",lat:33.6706,lng:-117.8563,daysOnMarket:5,condition:"Like New",features:["AMG Track Package","Roll cage","Magno paint","Carbon bucket seats"],carfax:"Clean title, 1 owner, 3,200 mi, collector condition"},
+  {id:208,year:2020,make:"Lamborghini",model:"Urus",trim:"Base",origMsrp:265000,askingPrice:88500,mileage:28500,vin:"ZPBUA1ZL5LLA67890",color:"Nero Noctis",interior:"Red/Black",engine:"4.0L Twin-Turbo V8",hp:641,transmission:"8-Speed Auto",drivetrain:"AWD",dealer:"Lambo Newport Beach",address:"1425 Baker St, Costa Mesa, CA",lat:33.6705,lng:-117.9031,daysOnMarket:28,condition:"Very Good",features:["B&O 3D audio","Night vision","Akrapovic exhaust"],carfax:"Clean title, 2 owners"},
+];
+
+// ============ STATE ============
+let favorites=JSON.parse(localStorage.getItem('av_favs')||'[]');
+let compareList=JSON.parse(localStorage.getItem('av_cmp')||'[]');
+let quizAnswers={},quizStep=0;
+let userPrefs=JSON.parse(localStorage.getItem('av_prefs')||'null');
+let currentView='browse',userLocation=null,map=null,markers=[];
+
+// ============ HELPERS ============
+function sc(s){if(s>=9)return'#34d399';if(s>=8)return'#7c6ef5';if(s>=7)return'#fbbf24';return'#f87171'}
+function fp(n){return'$'+n.toLocaleString()}
+
+function initLiveTicker(){
+  const t=[{n:"911 Carrera S",b:130050},{n:"BMW M3 Comp",b:82900},{n:"Corvette Z51",b:78595},{n:"AMG GT 63 S",b:194150},{n:"Taycan Turbo S",b:192400},{n:"Model S Plaid",b:89990},{n:"RS 6 Avant",b:128900},{n:"Lucid Air GT",b:138000}];
+  function upd(){document.getElementById('liveTicker').innerHTML=t.map(x=>{const c=(Math.random()-.48)*x.b*.003,p=(c/x.b*100).toFixed(2),d=c>=0;return`<div class="tick-item"><div class="tn">${x.n}</div><div class="tp">${fp(Math.round(x.b+c))}</div><div class="tc ${d?'tick-up':'tick-down'}">${d?'+':''}${fp(Math.abs(Math.round(c)))} (${d?'+':''}${p}%)</div></div>`}).join('')}
+  upd();setInterval(upd,4000);
+}
+
+// ============ QUIZ ============
+const QUIZ=[
+  {id:'purpose',q:"Primary use?",opts:["Daily commuting","Family hauling","Weekend fun / spirited driving","Off-road / adventure","Business / luxury image","Towing / hauling"]},
+  {id:'budget',q:"Budget range?",opts:["$30k - $50k","$50k - $75k","$75k - $100k","$100k - $150k","$150k+","Price isn't a factor"]},
+  {id:'bodyType',q:"Body style?",opts:["Sedan","SUV / Crossover","Truck","Sports car / Coupe","Wagon / Hatchback","No preference"]},
+  {id:'fuelType',q:"Powertrain?",opts:["Gas engine","Hybrid / PHEV","Full electric","Maximum performance","Best efficiency","No preference"]},
+  {id:'seats',q:"Passengers?",opts:["Just me (1-2)","Small family (4-5)","Large family (6-7)","Full crew (8+)","Varies"]},
+  {id:'priority1',q:"#1 priority?",opts:["Performance & speed","Safety ratings","Reliability","Comfort & luxury","Technology","Value for money"]},
+  {id:'priority2',q:"#2 priority?",opts:["Performance & speed","Safety ratings","Reliability","Comfort & luxury","Technology","Value for money"]},
+  {id:'brand',q:"Brand preference?",opts:["Japanese (Toyota, Honda, Lexus)","German (BMW, Mercedes, Audi, Porsche)","American (Ford, Chevy, Tesla)","Korean (Genesis)","Luxury only","No preference"]},
+  {id:'drivetrain',q:"Drivetrain?",opts:["FWD","RWD","AWD","4WD","No preference"]},
+  {id:'transmission',q:"Transmission?",opts:["Manual","Automatic","Dual-clutch","EV (none)","No preference"]},
+  {id:'newUsed',q:"New or used?",opts:["New only","1-2 years used","Looking for used deals","CPO preferred","No preference"]},
+  {id:'techImportance',q:"Tech importance?",opts:["Essential","Important","Nice to have","Prefer simplicity","Safety tech only"]},
+  {id:'lifestyle',q:"Lifestyle?",opts:["Urban","Suburban family","Rural/highway","Adventure/outdoor","Car enthusiast/track","Mix"]},
+  {id:'appearance',q:"Appearance importance?",opts:["Must turn heads","Stylish","Clean/presentable","Function > form","Sleeper"]},
+  {id:'dealbreaker',q:"Biggest dealbreaker?",opts:["Poor fuel economy","High maintenance","No safety tech","Boring to drive","Bad interior","Too expensive to own"]}
+];
+
+function renderQuiz(){const q=QUIZ[quizStep],s=quizAnswers[q.id]||null;let h=`<div class="quiz-question">${quizStep+1}. ${q.q}</div><div class="quiz-options">`;q.opts.forEach(o=>{h+=`<button class="${s===o?'selected':''}" onclick="selQ('${q.id}',this.textContent)">${o}</button>`});h+='</div>';document.getElementById('quizContent').innerHTML=h;document.getElementById('quizProgress').style.width=((quizStep+1)/QUIZ.length*100)+'%';document.getElementById('quizBack').disabled=quizStep===0;document.getElementById('quizNext').disabled=!s;document.getElementById('quizNext').textContent=quizStep===QUIZ.length-1?'See Results':'Next'}
+function selQ(id,v){quizAnswers[id]=v;document.querySelectorAll('.quiz-options button').forEach(b=>b.classList.toggle('selected',b.textContent===v));document.getElementById('quizNext').disabled=false}
+function quizNext(){if(quizStep<QUIZ.length-1){quizStep++;renderQuiz()}else{userPrefs=quizAnswers;localStorage.setItem('av_prefs',JSON.stringify(userPrefs));document.getElementById('quiz-overlay').classList.add('hidden');renderBrowse()}}
+function quizPrev(){if(quizStep>0){quizStep--;renderQuiz()}}
+function skipQuiz(){document.getElementById('quiz-overlay').classList.add('hidden');renderBrowse()}
+
+function scoreUser(c){if(!userPrefs)return 0;let s=0;const p=userPrefs;if(p.budget){if(p.budget.includes('30k - $50')&&c.msrp<=50000)s+=3;if(p.budget.includes('50k - $75')&&c.msrp>=50000&&c.msrp<=75000)s+=3;if(p.budget.includes('75k - $100')&&c.msrp>=75000&&c.msrp<=100000)s+=3;if(p.budget.includes('100k - $150')&&c.msrp>=100000&&c.msrp<=150000)s+=3;if(p.budget.includes('150k+')&&c.msrp>=150000)s+=3;if(p.budget.includes("isn't"))s+=2}if(p.bodyType){if(p.bodyType.includes('Sedan')&&c.type==='Sedan')s+=2;if(p.bodyType.includes('SUV')&&c.type==='SUV')s+=2;if(p.bodyType.includes('Truck')&&c.type==='Truck')s+=2;if(p.bodyType.includes('Sports')&&(c.type==='Sports Car'||c.type==='Coupe'))s+=2}if(p.priority1){if(p.priority1.includes('Performance')&&c.scores.performance>=9)s+=3;if(p.priority1.includes('Safety')&&c.scores.safety>=9)s+=3;if(p.priority1.includes('Reliability')&&c.scores.reliability>=8.5)s+=3;if(p.priority1.includes('Comfort')&&c.scores.comfort>=8.5)s+=3;if(p.priority1.includes('Technology')&&c.scores.tech>=9)s+=3;if(p.priority1.includes('Value')&&c.scores.value>=8.5)s+=3}return s}
+
+// ============ CARDS ============
+function renderCard(c){const f=favorites.includes(c.id);return`<div class="car-card" onclick="showDetail(${c.id})"><div class="car-img"><img src="${carImg(c.make,c.model,c.year)}" alt="${c.make} ${c.model}" onerror="this.parentElement.innerHTML='<div style=\\'color:var(--muted);font-size:14px\\'>${c.make} ${c.model}</div>'"><span class="year-badge">${c.year}</span><button class="fav-btn ${f?'favorited':''}" onclick="event.stopPropagation();toggleFav(${c.id})">${f?'&#9829;':'&#9825;'}</button></div><div class="card-body"><h3>${c.year} ${c.make} ${c.model}</h3><div class="trim">${c.trim} &middot; ${c.type}</div><div class="price-row"><span class="msrp">${fp(c.msrp)}</span><span class="market">Mkt: ${fp(c.marketPrice)}</span></div><div class="overall-score"><div class="score-circle" style="background:${sc(c.scores.overall)}">${c.scores.overall}</div><div><div style="font-weight:700;font-size:13px">Overall</div><div style="color:var(--muted);font-size:12px">${c.hp} hp &middot; ${c.drivetrain} &middot; ${c.engine}</div></div></div><div class="live-price"><span class="live-dot"></span>Live</div>${['performance','safety','value'].map(k=>`<div class="score-bar"><span class="sl">${k.charAt(0).toUpperCase()+k.slice(1)}</span><div class="bar"><div class="bf" style="width:${c.scores[k]*10}%;background:${sc(c.scores[k])}"></div></div><span class="sv">${c.scores[k]}</span></div>`).join('')}</div></div>`}
+
+function renderUpCard(c){return`<div class="car-card" onclick="showUpDetail(${c.id})"><div class="car-img"><img src="${carImg(c.make,c.model,c.year)}" alt="${c.make} ${c.model}" onerror="this.parentElement.innerHTML='<div style=\\'color:var(--muted);font-size:14px\\'>${c.make} ${c.model}</div>'"><span class="concept-badge">${c.status}</span></div><div class="card-body"><h3>${c.year} ${c.make} ${c.model}</h3><div class="trim">${c.trim} &middot; ${c.type}</div><div class="price-row"><span class="msrp">${fp(c.msrp)} <span style="font-size:11px;color:var(--muted)">est.</span></span></div><div style="font-size:13px;color:var(--muted);margin-top:6px"><strong style="color:var(--gold)">Expected:</strong> ${c.expectedDate}</div><div style="font-size:12px;color:var(--muted);margin-top:4px">${c.hp} hp est. &middot; ${c.drivetrain}</div><p style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5">${c.description.substring(0,120)}...</p></div></div>`}
+
+// ============ BROWSE ============
+function renderBrowse(){const ms=document.getElementById('filterMake');if(ms.options.length<=1)[...new Set(CARS.map(c=>c.make))].sort().forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;ms.appendChild(o)});filterCars();if(userPrefs){const s=CARS.map(c=>({...c,us:scoreUser(c)})).sort((a,b)=>b.us-a.us).slice(0,6);document.getElementById('rec-section').style.display='block';document.getElementById('recGrid').innerHTML=s.map(c=>renderCard(c)).join('')}}
+
+function filterCars(){let f=[...CARS];const y=document.getElementById('filterYear').value,m=document.getElementById('filterMake').value,t=document.getElementById('filterType').value,p=document.getElementById('filterPrice').value,s=document.getElementById('searchInput').value.toLowerCase(),so=document.getElementById('sortBy').value;if(y)f=f.filter(c=>c.year==y);if(m)f=f.filter(c=>c.make===m);if(t){if(t==='EV')f=f.filter(c=>c.type==='EV');else if(t==='Hybrid')f=f.filter(c=>c.type==='Hybrid'||c.tags.includes('hybrid'));else f=f.filter(c=>c.type===t)}if(p){const pv=parseInt(p);if(pv>150000)f=f.filter(c=>c.msrp>=150000);else f=f.filter(c=>c.msrp<=pv)}if(s)f=f.filter(c=>`${c.year} ${c.make} ${c.model} ${c.trim} ${c.type} ${c.tags.join(' ')}`.toLowerCase().includes(s));if(so==='score')f.sort((a,b)=>b.scores.overall-a.scores.overall);else if(so==='price-low')f.sort((a,b)=>a.msrp-b.msrp);else if(so==='price-high')f.sort((a,b)=>b.msrp-a.msrp);else if(so==='name')f.sort((a,b)=>`${a.make}${a.model}`.localeCompare(`${b.make}${b.model}`));else if(so==='hp')f.sort((a,b)=>b.hp-a.hp);document.getElementById('carGrid').innerHTML=f.map(c=>renderCard(c)).join('');document.getElementById('carCount').textContent=f.length}
+
+// ============ DETAIL ============
+function getSimilar(car){return CARS.filter(c=>c.id!==car.id&&(c.type===car.type||c.tags.some(t=>car.tags.includes(t)))).sort((a,b)=>Math.abs(a.msrp-car.msrp)-Math.abs(b.msrp-car.msrp)).slice(0,4)}
+
+function showDetail(id){const c=CARS.find(x=>x.id===id);if(!c)return;hideAll();const d=document.getElementById('detail-view');d.classList.add('active');const f=favorites.includes(c.id),cm=compareList.includes(c.id),sk=['performance','safety','reliability','comfort','tech','value'];
+  const depYears=[{y:'New',pct:1},{y:'1yr',pct:.85},{y:'2yr',pct:.72},{y:'3yr',pct:.62},{y:'5yr',pct:.48}];
+  const sim=getSimilar(c);
+  const ai=c.annualInsurance||2000,af=c.annualFuel||2000,am=c.annualMaint||1000;
+  d.innerHTML=`<button class="back-btn" onclick="goBack()">&larr; Back</button>
+  <div class="detail-header">
+    <div class="detail-img"><img src="${carImg(c.make,c.model,c.year)}" alt="${c.make} ${c.model}" onerror="this.style.display='none'"></div>
+    <div class="detail-info">
+      <h1>${c.year} ${c.make} ${c.model}</h1><div class="detail-trim">${c.trim} &middot; ${c.type}</div>
+      <div class="detail-actions"><button class="btn-fav" onclick="toggleFav(${c.id});showDetail(${c.id})">${f?'&#9829; Favorited':'&#9825; Favorite'}</button><button class="btn-compare" onclick="toggleCompare(${c.id});showDetail(${c.id})">${cm?'&#10003; In Compare':'+ Compare'}</button></div>
+      <div class="detail-prices">
+        <div class="price-box"><div class="label">MSRP</div><div class="val" style="color:var(--gold)">${fp(c.msrp)}</div><div class="live-price"><span class="live-dot"></span>Live</div></div>
+        <div class="price-box"><div class="label">Market Price</div><div class="val" style="color:${c.marketPrice>c.msrp?'var(--red)':'var(--green)'}">${fp(c.marketPrice)}</div></div>
+        <div class="price-box"><div class="label">Used (1-2yr)</div><div class="val" style="color:var(--accent2)">${c.usedPrice?fp(c.usedPrice):'Too New'}</div></div>
+      </div>
+      <div class="detail-scores">
+        <div class="score-item"><div class="s-label">Overall</div><div class="s-val" style="color:${sc(c.scores.overall)}">${c.scores.overall}</div></div>
+        ${sk.map(k=>`<div class="score-item"><div class="s-label">${k}</div><div class="s-val" style="color:${sc(c.scores[k])}">${c.scores[k]}</div></div>`).join('')}
+      </div>
+    </div>
+  </div>
+  <div class="section-title">Est. Annual Cost of Ownership</div>
+  <div class="coo-grid">
+    <div class="coo-item"><div class="coo-label">Insurance</div><div class="coo-val" style="color:var(--accent2)">${fp(ai)}</div></div>
+    <div class="coo-item"><div class="coo-label">Fuel/Charge</div><div class="coo-val" style="color:var(--accent2)">${fp(af)}</div></div>
+    <div class="coo-item"><div class="coo-label">Maintenance</div><div class="coo-val" style="color:var(--accent2)">${fp(am)}</div></div>
+    <div class="coo-item"><div class="coo-label">Total/Year</div><div class="coo-val" style="color:var(--gold)">${fp(ai+af+am)}</div></div>
+  </div>
+  <div class="section-title">Projected Depreciation</div>
+  <div class="used-verdict" style="padding:16px 18px">
+    <div class="dep-chart">${depYears.map(d=>`<div class="dep-bar-wrap"><div class="dep-val">${fp(Math.round(c.msrp*d.pct))}</div><div class="dep-bar" style="height:${d.pct*100}px;background:${d.pct>.7?'var(--green)':d.pct>.5?'var(--yellow)':'var(--red)'}"></div><div class="dep-label">${d.y}</div></div>`).join('')}</div>
+  </div>
+  <div class="section-title">Specifications</div>
+  <div class="spec-grid">${[['Engine',c.engine],['Horsepower',c.hp+' hp'],['Torque',c.torque+' lb-ft'],['Transmission',c.transmission],['Drivetrain',c.drivetrain],['Fuel Economy',c.fuelEconomy],['Curb Weight',c.weight.toLocaleString()+' lbs'],['Cargo',c.cargo+' cu ft'],['Seating',c.seating],['Warranty',c.warranty]].map(([l,v])=>`<div class="spec-item"><div class="spec-label">${l}</div><div class="spec-val">${v}</div></div>`).join('')}</div>
+  <div class="section-title">Features</div>
+  <div class="spec-grid">${c.features.map(f=>`<div class="spec-item"><div class="spec-val" style="font-size:13px">${f}</div></div>`).join('')}</div>
+  <div class="section-title">Packages</div>
+  ${c.packages.map(p=>`<div class="package-item"><h4>${p.name}<span class="pkg-price">${p.price===0?'Included':'+'+fp(p.price)}</span></h4><p>${p.desc}</p></div>`).join('')}
+  <div class="used-verdict"><h3>Should You Buy It Used?</h3><div class="verdict">${c.usedVerdict}</div></div>
+  <div class="section-title">Similar Vehicles</div>
+  <div class="similar-grid">${sim.map(s=>`<div class="similar-card" onclick="showDetail(${s.id})"><div class="sim-img"><img src="${carImg(s.make,s.model,s.year)}" onerror="this.style.display='none'"></div><div class="sim-body"><h4>${s.year} ${s.make} ${s.model}</h4><div class="sim-price">${fp(s.msrp)}</div></div></div>`).join('')}</div>`;
+  window.scrollTo(0,0)}
+
+function showUpDetail(id){const c=UPCOMING.find(x=>x.id===id);if(!c)return;hideAll();const d=document.getElementById('detail-view');d.classList.add('active');
+  d.innerHTML=`<button class="back-btn" onclick="goBack()">&larr; Back</button>
+  <div class="detail-header">
+    <div class="detail-img"><img src="${carImg(c.make,c.model,c.year)}" alt="${c.make} ${c.model}" onerror="this.style.display='none'"></div>
+    <div class="detail-info">
+      <h1>${c.year} ${c.make} ${c.model}</h1><div class="detail-trim">${c.trim} &middot; <span style="color:var(--yellow);font-weight:700">${c.status.toUpperCase()}</span></div>
+      <div class="detail-prices" style="grid-template-columns:repeat(2,1fr)">
+        <div class="price-box"><div class="label">Est. MSRP</div><div class="val" style="color:var(--gold)">${fp(c.msrp)}</div></div>
+        <div class="price-box"><div class="label">Expected</div><div class="val" style="color:var(--accent2);font-size:16px">${c.expectedDate}</div></div>
+      </div>
+      <div class="section-title" style="margin-top:20px">Est. Specs</div>
+      <div class="spec-grid">${[['Engine',c.engine],['Est. HP',c.hp+' hp'],['Drivetrain',c.drivetrain],['Est. Weight',c.weight.toLocaleString()+' lbs']].map(([l,v])=>`<div class="spec-item"><div class="spec-label">${l}</div><div class="spec-val">${v}</div></div>`).join('')}</div>
+      <div class="used-verdict" style="margin-top:20px"><h3>About</h3><div class="verdict">${c.description}</div></div>
+    </div>
+  </div>`;window.scrollTo(0,0)}
+
+// ============ MARKETPLACE ============
+const NB={lat:33.6189,lng:-117.9298};
+function hav(a1,o1,a2,o2){const R=3959,d1=(a2-a1)*Math.PI/180,d2=(o2-o1)*Math.PI/180,a=Math.sin(d1/2)**2+Math.cos(a1*Math.PI/180)*Math.cos(a2*Math.PI/180)*Math.sin(d2/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))}
+function requestLocation(){if(navigator.geolocation)navigator.geolocation.getCurrentPosition(p=>{userLocation={lat:p.coords.latitude,lng:p.coords.longitude};document.getElementById('locText').innerHTML=`<strong>Your location:</strong> ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}`;renderMkt()},()=>{document.getElementById('locText').textContent='Denied. Distances from Newport Beach center.'})}
+
+function renderMkt(){const r=userLocation||NB;if(!map){map=L.map('map').setView([r.lat,r.lng],11);L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'CartoDB',maxZoom:19}).addTo(map)}else map.setView([r.lat,r.lng],11);markers.forEach(m=>map.removeLayer(m));markers=[];if(userLocation){const u=L.circleMarker([userLocation.lat,userLocation.lng],{radius:10,color:'#7c6ef5',fillColor:'#7c6ef5',fillOpacity:.8}).addTo(map);u.bindPopup('<strong>You</strong>');markers.push(u)}
+  const sorted=MARKETPLACE.map(l=>{l.distance=hav(r.lat,r.lng,l.lat,l.lng);l.savings=l.origMsrp-l.askingPrice;l.savPct=Math.round(l.savings/l.origMsrp*100);return l}).sort((a,b)=>a.distance-b.distance);
+  sorted.forEach(l=>{const m=L.marker([l.lat,l.lng]).addTo(map);m.bindPopup(`<div style="font-size:13px"><strong>${l.year} ${l.make} ${l.model}</strong><br>${fp(l.askingPrice)}<br><span style="color:#34d399">Save ${fp(l.savings)} (${l.savPct}%)</span></div>`);markers.push(m)});
+  document.getElementById('listingCount').textContent=sorted.length;
+  document.getElementById('listingGrid').innerHTML=sorted.map(l=>`<div class="listing-card" onclick="showListing(${l.id})"><div class="listing-img"><img src="${carImg(l.make,l.model,l.year)}" onerror="this.style.display='none'"><span class="dom-badge">${l.daysOnMarket}d on market</span></div><div class="listing-body"><h3>${l.year} ${l.make} ${l.model} ${l.trim}</h3><div class="listing-sub">${l.dealer} &middot; <span class="distance-badge">${l.distance.toFixed(1)} mi</span></div><div class="listing-prices"><div class="lp"><div class="lp-label">Asking</div><div class="lp-val" style="color:var(--green)">${fp(l.askingPrice)}</div></div><div class="lp"><div class="lp-label">Orig MSRP</div><div class="lp-val" style="color:var(--muted);text-decoration:line-through">${fp(l.origMsrp)}</div></div><div class="lp"><div class="lp-label">Save</div><div class="lp-val savings-badge">${fp(l.savings)} (${l.savPct}%)</div></div></div><div class="listing-meta"><span>${l.mileage.toLocaleString()} mi</span><span>${l.color}</span><span>${l.hp} hp</span></div></div></div>`).join('')}
+
+function showListing(id){const l=MARKETPLACE.find(x=>x.id===id);if(!l)return;const r=userLocation||NB,dist=hav(r.lat,r.lng,l.lat,l.lng);hideAll();const d=document.getElementById('detail-view');d.classList.add('active');
+  d.innerHTML=`<button class="back-btn" onclick="goBack()">&larr; Back</button>
+  <div class="detail-header">
+    <div class="detail-img"><img src="${carImg(l.make,l.model,l.year)}" onerror="this.style.display='none'"></div>
+    <div class="detail-info">
+      <h1>${l.year} ${l.make} ${l.model} ${l.trim}</h1><div class="detail-trim">${l.color} &middot; ${l.interior} &middot; VIN: ${l.vin}</div>
+      <div class="detail-prices">
+        <div class="price-box"><div class="label">Asking</div><div class="val" style="color:var(--green)">${fp(l.askingPrice)}</div></div>
+        <div class="price-box"><div class="label">Orig MSRP</div><div class="val" style="color:var(--muted);text-decoration:line-through">${fp(l.origMsrp)}</div></div>
+        <div class="price-box"><div class="label">You Save</div><div class="val savings-badge">${fp(l.origMsrp-l.askingPrice)} (${Math.round((l.origMsrp-l.askingPrice)/l.origMsrp*100)}%)</div></div>
+      </div>
+      <div class="detail-scores" style="grid-template-columns:repeat(4,1fr)">
+        <div class="score-item"><div class="s-label">Miles</div><div class="s-val" style="font-size:18px">${l.mileage.toLocaleString()}</div></div>
+        <div class="score-item"><div class="s-label">Days Listed</div><div class="s-val" style="font-size:18px;color:${l.daysOnMarket<14?'var(--red)':l.daysOnMarket<30?'var(--yellow)':'var(--green)'}">${l.daysOnMarket}</div></div>
+        <div class="score-item"><div class="s-label">Distance</div><div class="s-val" style="font-size:18px;color:var(--accent2)">${dist.toFixed(1)} mi</div></div>
+        <div class="score-item"><div class="s-label">Condition</div><div class="s-val" style="font-size:14px">${l.condition}</div></div>
+      </div>
+      <div class="section-title">Specs</div>
+      <div class="spec-grid">${[['Engine',l.engine],['HP',l.hp+' hp'],['Trans',l.transmission],['Drive',l.drivetrain]].map(([k,v])=>`<div class="spec-item"><div class="spec-label">${k}</div><div class="spec-val">${v}</div></div>`).join('')}</div>
+      <div class="section-title">Features</div>
+      <div class="spec-grid">${l.features.map(f=>`<div class="spec-item"><div class="spec-val" style="font-size:13px">${f}</div></div>`).join('')}</div>
+      <div class="used-verdict"><h3>${l.dealer}</h3><div class="verdict">${l.address}<br><br><strong>Carfax:</strong> ${l.carfax}</div></div>
+    </div>
+  </div>`;window.scrollTo(0,0)}
+
+// ============ COMPARE ============
+function toggleCompare(id){const i=compareList.indexOf(id);if(i>=0)compareList.splice(i,1);else if(compareList.length<4)compareList.push(id);localStorage.setItem('av_cmp',JSON.stringify(compareList))}
+function renderCompare(){const cars=compareList.map(id=>CARS.find(c=>c.id===id)).filter(Boolean);document.getElementById('compareCount').textContent=cars.length;if(!cars.length){document.getElementById('compareContent').innerHTML='<div class="empty-state"><div class="empty-icon">&#8644;</div><p>No cars to compare. Browse and click "+ Compare" (up to 4).</p></div>';return}
+  const rows=[{l:'',fn:c=>`<div class="car-header"><img src="${carImg(c.make,c.model,c.year)}" onerror="this.style.display='none'"><h4>${c.year} ${c.make} ${c.model}</h4><div style="color:var(--muted);font-size:12px">${c.trim}</div><button class="compare-remove" onclick="toggleCompare(${c.id});renderCompare()">Remove</button></div>`},{l:'MSRP',fn:c=>fp(c.msrp),best:'low',raw:c=>c.msrp},{l:'Market',fn:c=>fp(c.marketPrice),best:'low',raw:c=>c.marketPrice},{l:'Used',fn:c=>c.usedPrice?fp(c.usedPrice):'N/A'},{l:'Overall',fn:c=>`<span style="color:${sc(c.scores.overall)};font-weight:800;font-size:20px">${c.scores.overall}</span>`,best:'high',raw:c=>c.scores.overall},{l:'Performance',fn:c=>c.scores.performance,best:'high',raw:c=>c.scores.performance},{l:'Safety',fn:c=>c.scores.safety,best:'high',raw:c=>c.scores.safety},{l:'Reliability',fn:c=>c.scores.reliability,best:'high',raw:c=>c.scores.reliability},{l:'Comfort',fn:c=>c.scores.comfort,best:'high',raw:c=>c.scores.comfort},{l:'Tech',fn:c=>c.scores.tech,best:'high',raw:c=>c.scores.tech},{l:'Value',fn:c=>c.scores.value,best:'high',raw:c=>c.scores.value},{l:'Engine',fn:c=>c.engine},{l:'HP',fn:c=>c.hp+' hp',best:'high',raw:c=>c.hp},{l:'Torque',fn:c=>c.torque+' lb-ft',best:'high',raw:c=>c.torque},{l:'Trans',fn:c=>c.transmission},{l:'Drive',fn:c=>c.drivetrain},{l:'Economy',fn:c=>c.fuelEconomy},{l:'Weight',fn:c=>c.weight.toLocaleString()+' lbs',best:'low',raw:c=>c.weight},{l:'Cargo',fn:c=>c.cargo+' cu ft',best:'high',raw:c=>c.cargo},{l:'Annual Cost',fn:c=>fp((c.annualInsurance||2000)+(c.annualFuel||2000)+(c.annualMaint||1000)),best:'low',raw:c=>(c.annualInsurance||2000)+(c.annualFuel||2000)+(c.annualMaint||1000)}];
+  let h='<div style="overflow-x:auto"><table class="compare-table">';rows.forEach(r=>{h+='<tr><th>'+r.l+'</th>';let bv=null;if(r.best&&r.raw){const vs=cars.map(c=>r.raw(c));bv=r.best==='high'?Math.max(...vs):Math.min(...vs)}cars.forEach(c=>{const ib=r.raw&&bv!==null&&r.raw(c)===bv&&cars.length>1;h+=`<td class="${ib?'best':''}">${r.fn(c)}</td>`});h+='</tr>'});h+='</table></div>';document.getElementById('compareContent').innerHTML=h}
+
+// ============ FAVORITES ============
+function toggleFav(id){const i=favorites.indexOf(id);if(i>=0)favorites.splice(i,1);else favorites.push(id);localStorage.setItem('av_favs',JSON.stringify(favorites));if(currentView==='browse')renderBrowse();if(currentView==='favorites')renderFavs()}
+function renderFavs(){const fc=CARS.filter(c=>favorites.includes(c.id));document.getElementById('favCount').textContent=fc.length;if(!fc.length){document.getElementById('favGrid').innerHTML='';document.getElementById('favEmpty').style.display='block'}else{document.getElementById('favEmpty').style.display='none';document.getElementById('favGrid').innerHTML=fc.map(c=>renderCard(c)).join('')}}
+
+// ============ NAV ============
+function hideAll(){['browse-view','upcoming-view','marketplace-view','compare-view','favorites-view'].forEach(id=>document.getElementById(id).classList.add('hidden'));document.getElementById('detail-view').classList.remove('active');document.getElementById('detail-view').innerHTML=''}
+function showView(v){currentView=v;document.querySelectorAll('.nav-links button').forEach(b=>b.classList.toggle('active',b.dataset.view===v));hideAll();document.getElementById(v+'-view').classList.remove('hidden');if(v==='browse')renderBrowse();else if(v==='upcoming')document.getElementById('upcomingGrid').innerHTML=UPCOMING.map(c=>renderUpCard(c)).join('');else if(v==='marketplace')setTimeout(()=>renderMkt(),100);else if(v==='compare')renderCompare();else if(v==='favorites')renderFavs()}
+function goBack(){document.getElementById('detail-view').classList.remove('active');document.getElementById('detail-view').innerHTML='';document.getElementById(currentView+'-view').classList.remove('hidden');if(currentView==='marketplace')setTimeout(()=>{if(map)map.invalidateSize()},100)}
+
+// ============ INIT ============
+window.addEventListener('DOMContentLoaded',()=>{if(userPrefs)document.getElementById('quiz-overlay').classList.add('hidden');renderQuiz();renderBrowse();initLiveTicker()});
+</script>
+</body>
+</html>
