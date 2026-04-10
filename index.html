@@ -172,7 +172,11 @@ main{max-width:1440px;margin:0 auto;padding:24px}
 
 .empty-state{text-align:center;padding:60px 20px;color:var(--muted)}.empty-state .empty-icon{font-size:48px;margin-bottom:12px}
 
-@media(max-width:768px){.detail-header{flex-direction:column}.detail-img{width:100%;height:240px}.detail-prices{grid-template-columns:1fr}.car-grid{grid-template-columns:1fr}.listing-grid{grid-template-columns:1fr}nav{padding:0 12px}.search-bar{width:160px}}
+footer{text-align:center;padding:40px 20px 24px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);margin-top:40px}
+footer a{color:var(--accent2);text-decoration:none}footer a:hover{text-decoration:underline}
+footer .footer-brand{font-size:16px;font-weight:800;margin-bottom:6px}footer .footer-brand span:first-child{color:var(--text)}footer .footer-brand span:last-child{color:var(--gold)}
+
+@media(max-width:768px){.detail-header{flex-direction:column}.detail-img{width:100%;height:240px}.detail-prices{grid-template-columns:1fr}.car-grid{grid-template-columns:1fr}.listing-grid{grid-template-columns:1fr}nav{padding:0 12px}.search-bar{width:160px}.nav-links{overflow-x:auto}.coo-grid{grid-template-columns:repeat(2,1fr)}.detail-scores{grid-template-columns:repeat(3,1fr)}}
 </style>
 </head>
 <body>
@@ -209,7 +213,7 @@ main{max-width:1440px;margin:0 auto;padding:24px}
     <div class="filters">
       <select id="filterYear" onchange="filterCars()"><option value="">All Years</option><option>2027</option><option>2026</option><option>2025</option><option>2024</option><option>2023</option></select>
       <select id="filterMake" onchange="filterCars()"><option value="">All Makes</option></select>
-      <select id="filterType" onchange="filterCars()"><option value="">All Types</option><option>Sedan</option><option>SUV</option><option>Truck</option><option>Coupe</option><option>Sports Car</option><option>EV</option><option>Hybrid</option><option>Wagon</option></select>
+      <select id="filterType" onchange="filterCars()"><option value="">All Types</option><option>Sedan</option><option>SUV</option><option>Truck</option><option>Coupe</option><option>Sports Car</option><option>Hatchback</option><option>EV</option><option>Hybrid</option><option>Wagon</option></select>
       <select id="filterPrice" onchange="filterCars()"><option value="">Any Price</option><option value="50000">Under $50k</option><option value="75000">Under $75k</option><option value="100000">Under $100k</option><option value="150000">Under $150k</option><option value="150001">$150k+</option></select>
       <select id="sortBy" onchange="filterCars()"><option value="score">Best Score</option><option value="price-low">Price: Low</option><option value="price-high">Price: High</option><option value="name">Name A-Z</option><option value="hp">Most Power</option></select>
     </div>
@@ -230,6 +234,14 @@ main{max-width:1440px;margin:0 auto;padding:24px}
   <div id="favorites-view" class="hidden"><div class="section-title">Favorites <span class="badge" id="favCount">0</span></div><div class="car-grid" id="favGrid"></div><div id="favEmpty" class="empty-state" style="display:none"><div class="empty-icon">&#9734;</div><p>No favorites yet.</p></div></div>
   <div id="detail-view"></div>
 </main>
+
+<footer>
+  <div class="footer-brand"><span>Auto</span><span>Vault</span></div>
+  <p>Premium Vehicle Database & Marketplace</p>
+  <p style="margin-top:8px">30 curated vehicles &middot; 9 upcoming models &middot; Live marketplace</p>
+  <p style="margin-top:8px">Pricing sourced from manufacturer MSRP &middot; <a href="https://www.caranddriver.com" target="_blank">Car and Driver</a> &middot; Market estimates as of 2025</p>
+  <p style="margin-top:12px;color:var(--border)">&copy; 2025 AutoVault. For personal use.</p>
+</footer>
 
 <script>
 // Car image helper — uses imagin.studio API for consistent 3/4 front angle, transparent bg on black container
@@ -273,12 +285,25 @@ const PRICE_URLS={
   27:'https://www.caranddriver.com/genesis/g70/',28:'https://www.caranddriver.com/ram/1500-trx/',
   29:'https://www.caranddriver.com/toyota/gr86/',30:'https://www.caranddriver.com/ford/f-150-raptor/',
 };
+function imaginUrl(make,model,year){
+  const m=make.toLowerCase().replace(/[\s-]+/g,'');
+  const md=model.toLowerCase().replace(/[\s-]+/g,'');
+  return `https://cdn.imagin.studio/getimage?customer=img&make=${m}&modelFamily=${md}&modelYear=${year}&angle=23&width=600&height=400`;
+}
 function carImg(car) {
   if(car&&CAR_IMGS[car.id])return CAR_IMGS[car.id];
-  const m=car.make.toLowerCase().replace(/[\s-]+/g,'');
-  const md=car.model.toLowerCase().replace(/[\s-]+/g,'');
-  return `https://cdn.imagin.studio/getimage?customer=img&make=${m}&modelFamily=${md}&modelYear=${car.year}&angle=23&width=600&height=400`;
+  return imaginUrl(car.make,car.model,car.year);
 }
+// Fallback chain: Wikipedia photo → imagin.studio render → text label
+function imgFail(el){
+  if(!el.dataset.tried){
+    el.dataset.tried='1';
+    el.src=imaginUrl(el.dataset.make||'',el.dataset.model||'',el.dataset.year||'2025');
+  } else {
+    el.style.display='none';
+  }
+}
+function imgAttrs(car){return `data-make="${car.make}" data-model="${car.model}" data-year="${car.year}" onerror="imgFail(this)"`}
 
 // ============ DATABASE — PREMIUM ONLY ============
 const CARS=[
@@ -372,7 +397,7 @@ const CARS=[
     packages:[{name:"Luxury Package",price:3600,desc:"Semi-aniline leather, panoramic roof, Mark Levinson audio"}],
     features:["14\" touchscreen","Lexus Safety System+ 3.0","DIRECT4 AWD","Adaptive variable suspension"],
     usedVerdict:"Strong used buy. Lexus reliability is legendary. RX holds value well. 500h is the enthusiast's pick.",annualInsurance:2400,annualFuel:1800,annualMaint:600},
-  {id:16,year:2025,make:"Honda",model:"Civic",trim:"Type R",type:"Coupe",msrp:44890,marketPrice:48000,usedPrice:43000,
+  {id:16,year:2025,make:"Honda",model:"Civic",trim:"Type R",type:"Hatchback",msrp:44890,marketPrice:48000,usedPrice:43000,
     hp:315,torque:310,engine:"2.0L Turbo I4",transmission:"6-Speed Manual",drivetrain:"FWD",fuelEconomy:"22/28 mpg",weight:3118,cargo:25.0,seating:5,warranty:"3yr/36k mi",
     scores:{overall:8.8,performance:9.2,safety:8.5,reliability:9.0,comfort:7.5,tech:7.8,value:8.5},tags:["sports","performance","fwd","manual","hatchback"],
     packages:[{name:"Carbon Fiber Package",price:3600,desc:"Carbon hood, mirror covers, rear wing endplate"}],
@@ -396,7 +421,7 @@ const CARS=[
     packages:[{name:"Dynamic Handling",price:3025,desc:"Torsen LSD, adaptive suspension, performance spoiler"}],
     features:["Mark Levinson audio","Yamaha-tuned exhaust","Naturally aspirated V8"],
     usedVerdict:"Excellent used buy. One of the last NA V8 sport sedans. Lexus reliability + V8 = modern classic.",annualInsurance:2200,annualFuel:2800,annualMaint:500},
-  {id:20,year:2025,make:"Volkswagen",model:"Golf R",trim:"Golf R",type:"Coupe",msrp:46490,marketPrice:45000,usedPrice:40000,
+  {id:20,year:2025,make:"Volkswagen",model:"Golf R",trim:"Golf R",type:"Hatchback",msrp:46490,marketPrice:45000,usedPrice:40000,
     hp:315,torque:295,engine:"2.0L Turbo I4",transmission:"7-Speed DSG",drivetrain:"AWD",fuelEconomy:"22/30 mpg",weight:3417,cargo:19.9,seating:5,warranty:"4yr/50k mi",
     scores:{overall:8.5,performance:8.8,safety:8.5,reliability:7.5,comfort:8.0,tech:8.5,value:8.0},tags:["performance","hatchback","awd","daily","sleeper"],
     packages:[{name:"Drift/Special Mode",price:0,desc:"Included: Drift mode, Nurburgring mode, rear-biased torque split"}],
@@ -532,17 +557,17 @@ function quizNext(){if(quizStep<QUIZ.length-1){quizStep++;renderQuiz()}else{user
 function quizPrev(){if(quizStep>0){quizStep--;renderQuiz()}}
 function skipQuiz(){document.getElementById('quiz-overlay').classList.add('hidden');renderBrowse()}
 
-function scoreUser(c){if(!userPrefs)return 0;let s=0;const p=userPrefs;if(p.budget){if(p.budget.includes('30k - $50')&&c.msrp<=50000)s+=3;if(p.budget.includes('50k - $75')&&c.msrp>=50000&&c.msrp<=75000)s+=3;if(p.budget.includes('75k - $100')&&c.msrp>=75000&&c.msrp<=100000)s+=3;if(p.budget.includes('100k - $150')&&c.msrp>=100000&&c.msrp<=150000)s+=3;if(p.budget.includes('150k+')&&c.msrp>=150000)s+=3;if(p.budget.includes("isn't"))s+=2}if(p.bodyType){if(p.bodyType.includes('Sedan')&&c.type==='Sedan')s+=2;if(p.bodyType.includes('SUV')&&c.type==='SUV')s+=2;if(p.bodyType.includes('Truck')&&c.type==='Truck')s+=2;if(p.bodyType.includes('Sports')&&(c.type==='Sports Car'||c.type==='Coupe'))s+=2;if(p.bodyType.includes('Wagon')&&(c.type==='Wagon'||c.tags.includes('hatchback')))s+=2}if(p.priority1){if(p.priority1.includes('Performance')&&c.scores.performance>=9)s+=3;if(p.priority1.includes('Safety')&&c.scores.safety>=9)s+=3;if(p.priority1.includes('Reliability')&&c.scores.reliability>=8.5)s+=3;if(p.priority1.includes('Comfort')&&c.scores.comfort>=8.5)s+=3;if(p.priority1.includes('Technology')&&c.scores.tech>=9)s+=3;if(p.priority1.includes('Value')&&c.scores.value>=8.5)s+=3}return s}
+function scoreUser(c){if(!userPrefs)return 0;let s=0;const p=userPrefs;if(p.budget){if(p.budget.includes('30k - $50')&&c.msrp<=50000)s+=3;if(p.budget.includes('50k - $75')&&c.msrp>=50000&&c.msrp<=75000)s+=3;if(p.budget.includes('75k - $100')&&c.msrp>=75000&&c.msrp<=100000)s+=3;if(p.budget.includes('100k - $150')&&c.msrp>=100000&&c.msrp<=150000)s+=3;if(p.budget.includes('150k+')&&c.msrp>=150000)s+=3;if(p.budget.includes("isn't"))s+=2}if(p.bodyType){if(p.bodyType.includes('Sedan')&&c.type==='Sedan')s+=2;if(p.bodyType.includes('SUV')&&c.type==='SUV')s+=2;if(p.bodyType.includes('Truck')&&c.type==='Truck')s+=2;if(p.bodyType.includes('Sports')&&(c.type==='Sports Car'||c.type==='Coupe'))s+=2}if(p.priority1){if(p.priority1.includes('Performance')&&c.scores.performance>=9)s+=3;if(p.priority1.includes('Safety')&&c.scores.safety>=9)s+=3;if(p.priority1.includes('Reliability')&&c.scores.reliability>=8.5)s+=3;if(p.priority1.includes('Comfort')&&c.scores.comfort>=8.5)s+=3;if(p.priority1.includes('Technology')&&c.scores.tech>=9)s+=3;if(p.priority1.includes('Value')&&c.scores.value>=8.5)s+=3}return s}
 
 // ============ CARDS ============
-function renderCard(c){const f=favorites.includes(c.id);return`<div class="car-card" onclick="showDetail(${c.id})"><div class="car-img"><img src="${carImg(c)}" alt="${c.make} ${c.model}" onerror="this.style.display='none'"><span class="year-badge">${c.year}</span><button class="fav-btn ${f?'favorited':''}" onclick="event.stopPropagation();toggleFav(${c.id})">${f?'&#9829;':'&#9825;'}</button></div><div class="card-body"><h3>${c.year} ${c.make} ${c.model}</h3><div class="trim">${c.trim} &middot; ${c.type}</div><div class="price-row"><span class="msrp">${fp(c.msrp)}</span><span class="market">Mkt: ${fp(c.marketPrice)}</span></div><div class="overall-score"><div class="score-circle" style="background:${sc(c.scores.overall)}">${c.scores.overall}</div><div><div style="font-weight:700;font-size:13px">Overall</div><div style="color:var(--muted);font-size:12px">${c.hp} hp &middot; ${c.drivetrain} &middot; ${c.engine}</div></div></div><div class="live-price"><span class="live-dot"></span>Live</div>${['performance','safety','value'].map(k=>`<div class="score-bar"><span class="sl">${k.charAt(0).toUpperCase()+k.slice(1)}</span><div class="bar"><div class="bf" style="width:${c.scores[k]*10}%;background:${sc(c.scores[k])}"></div></div><span class="sv">${c.scores[k]}</span></div>`).join('')}</div></div>`}
+function renderCard(c){const f=favorites.includes(c.id);return`<div class="car-card" onclick="showDetail(${c.id})"><div class="car-img"><img src="${carImg(c)}" alt="${c.make} ${c.model}" ${imgAttrs(c)}><span class="year-badge">${c.year}</span><button class="fav-btn ${f?'favorited':''}" onclick="event.stopPropagation();toggleFav(${c.id})">${f?'&#9829;':'&#9825;'}</button></div><div class="card-body"><h3>${c.year} ${c.make} ${c.model}</h3><div class="trim">${c.trim} &middot; ${c.type}</div><div class="price-row"><span class="msrp">${fp(c.msrp)}</span><span class="market">Mkt: ${fp(c.marketPrice)}</span></div><div class="overall-score"><div class="score-circle" style="background:${sc(c.scores.overall)}">${c.scores.overall}</div><div><div style="font-weight:700;font-size:13px">Overall</div><div style="color:var(--muted);font-size:12px">${c.hp} hp &middot; ${c.drivetrain} &middot; ${c.engine}</div></div></div><div class="live-price"><span class="live-dot"></span>Live</div>${['performance','safety','value'].map(k=>`<div class="score-bar"><span class="sl">${k.charAt(0).toUpperCase()+k.slice(1)}</span><div class="bar"><div class="bf" style="width:${c.scores[k]*10}%;background:${sc(c.scores[k])}"></div></div><span class="sv">${c.scores[k]}</span></div>`).join('')}</div></div>`}
 
-function renderUpCard(c){return`<div class="car-card" onclick="showUpDetail(${c.id})"><div class="car-img"><img src="${carImg(c)}" alt="${c.make} ${c.model}" onerror="this.style.display='none'"><span class="concept-badge">${c.status}</span></div><div class="card-body"><h3>${c.year} ${c.make} ${c.model}</h3><div class="trim">${c.trim} &middot; ${c.type}</div><div class="price-row"><span class="msrp">${fp(c.msrp)} <span style="font-size:11px;color:var(--muted)">est.</span></span></div><div style="font-size:13px;color:var(--muted);margin-top:6px"><strong style="color:var(--gold)">Expected:</strong> ${c.expectedDate}</div><div style="font-size:12px;color:var(--muted);margin-top:4px">${c.hp} hp est. &middot; ${c.drivetrain}</div><p style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5">${c.description.substring(0,120)}...</p></div></div>`}
+function renderUpCard(c){return`<div class="car-card" onclick="showUpDetail(${c.id})"><div class="car-img"><img src="${carImg(c)}" alt="${c.make} ${c.model}" ${imgAttrs(c)}><span class="concept-badge">${c.status}</span></div><div class="card-body"><h3>${c.year} ${c.make} ${c.model}</h3><div class="trim">${c.trim} &middot; ${c.type}</div><div class="price-row"><span class="msrp">${fp(c.msrp)} <span style="font-size:11px;color:var(--muted)">est.</span></span></div><div style="font-size:13px;color:var(--muted);margin-top:6px"><strong style="color:var(--gold)">Expected:</strong> ${c.expectedDate}</div><div style="font-size:12px;color:var(--muted);margin-top:4px">${c.hp} hp est. &middot; ${c.drivetrain}</div><p style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5">${c.description.substring(0,120)}...</p></div></div>`}
 
 // ============ BROWSE ============
 function renderBrowse(){const ms=document.getElementById('filterMake');if(ms.options.length<=1)[...new Set(CARS.map(c=>c.make))].sort().forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;ms.appendChild(o)});filterCars();if(userPrefs){const s=CARS.map(c=>({...c,us:scoreUser(c)})).sort((a,b)=>b.us-a.us).slice(0,6);document.getElementById('rec-section').style.display='block';document.getElementById('recGrid').innerHTML=s.map(c=>renderCard(c)).join('')}}
 
-function filterCars(){let f=[...CARS];const y=document.getElementById('filterYear').value,m=document.getElementById('filterMake').value,t=document.getElementById('filterType').value,p=document.getElementById('filterPrice').value,s=document.getElementById('searchInput').value.toLowerCase(),so=document.getElementById('sortBy').value;if(y)f=f.filter(c=>c.year==y);if(m)f=f.filter(c=>c.make===m);if(t){if(t==='EV')f=f.filter(c=>c.type==='EV'||c.tags.includes('ev'));else if(t==='Hybrid')f=f.filter(c=>c.type==='Hybrid'||c.tags.includes('hybrid'));else f=f.filter(c=>c.type===t)}if(p){const pv=parseInt(p);if(pv>150000)f=f.filter(c=>c.msrp>=150000);else f=f.filter(c=>c.msrp<=pv)}if(s)f=f.filter(c=>`${c.year} ${c.make} ${c.model} ${c.trim} ${c.type} ${c.tags.join(' ')}`.toLowerCase().includes(s));if(so==='score')f.sort((a,b)=>b.scores.overall-a.scores.overall);else if(so==='price-low')f.sort((a,b)=>a.msrp-b.msrp);else if(so==='price-high')f.sort((a,b)=>b.msrp-a.msrp);else if(so==='name')f.sort((a,b)=>`${a.make}${a.model}`.localeCompare(`${b.make}${b.model}`));else if(so==='hp')f.sort((a,b)=>b.hp-a.hp);document.getElementById('carGrid').innerHTML=f.map(c=>renderCard(c)).join('');document.getElementById('carCount').textContent=f.length}
+function filterCars(){let f=[...CARS];const y=document.getElementById('filterYear').value,m=document.getElementById('filterMake').value,t=document.getElementById('filterType').value,p=document.getElementById('filterPrice').value,s=document.getElementById('searchInput').value.toLowerCase(),so=document.getElementById('sortBy').value;if(y)f=f.filter(c=>c.year==y);if(m)f=f.filter(c=>c.make===m);if(t){if(t==='EV')f=f.filter(c=>c.type==='EV');else if(t==='Hybrid')f=f.filter(c=>c.type==='Hybrid'||c.tags.includes('hybrid'));else f=f.filter(c=>c.type===t)}if(p){const pv=parseInt(p);if(pv>150000)f=f.filter(c=>c.msrp>=150000);else f=f.filter(c=>c.msrp<=pv)}if(s)f=f.filter(c=>`${c.year} ${c.make} ${c.model} ${c.trim} ${c.type} ${c.tags.join(' ')}`.toLowerCase().includes(s));if(so==='score')f.sort((a,b)=>b.scores.overall-a.scores.overall);else if(so==='price-low')f.sort((a,b)=>a.msrp-b.msrp);else if(so==='price-high')f.sort((a,b)=>b.msrp-a.msrp);else if(so==='name')f.sort((a,b)=>`${a.make}${a.model}`.localeCompare(`${b.make}${b.model}`));else if(so==='hp')f.sort((a,b)=>b.hp-a.hp);document.getElementById('carGrid').innerHTML=f.map(c=>renderCard(c)).join('');document.getElementById('carCount').textContent=f.length}
 
 // ============ DETAIL ============
 function getSimilar(car){return CARS.filter(c=>c.id!==car.id&&(c.type===car.type||c.tags.some(t=>car.tags.includes(t)))).sort((a,b)=>Math.abs(a.msrp-car.msrp)-Math.abs(b.msrp-car.msrp)).slice(0,4)}
@@ -553,7 +578,7 @@ function showDetail(id){const c=CARS.find(x=>x.id===id);if(!c)return;hideAll();c
   const ai=c.annualInsurance||2000,af=c.annualFuel||2000,am=c.annualMaint||1000;
   d.innerHTML=`<button class="back-btn" onclick="goBack()">&larr; Back</button>
   <div class="detail-header">
-    <div class="detail-img"><img src="${carImg(c)}" alt="${c.make} ${c.model}" onerror="this.style.display='none'"></div>
+    <div class="detail-img"><img src="${carImg(c)}" alt="${c.make} ${c.model}" ${imgAttrs(c)}></div>
     <div class="detail-info">
       <h1>${c.year} ${c.make} ${c.model}</h1><div class="detail-trim">${c.trim} &middot; ${c.type}</div>
       <div class="detail-actions"><button class="btn-fav" onclick="toggleFav(${c.id});showDetail(${c.id})">${f?'&#9829; Favorited':'&#9825; Favorite'}</button><button class="btn-compare" onclick="toggleCompare(${c.id});showDetail(${c.id})">${cm?'&#10003; In Compare':'+ Compare'}</button></div>
@@ -587,13 +612,13 @@ function showDetail(id){const c=CARS.find(x=>x.id===id);if(!c)return;hideAll();c
   ${c.packages.map(p=>`<div class="package-item"><h4>${p.name}<span class="pkg-price">${p.price===0?'Included':'+'+fp(p.price)}</span></h4><p>${p.desc}</p></div>`).join('')}
   <div class="used-verdict"><h3>Should You Buy It Used?</h3><div class="verdict">${c.usedVerdict}</div></div>
   <div class="section-title">Similar Vehicles</div>
-  <div class="similar-grid">${sim.map(s=>`<div class="similar-card" onclick="showDetail(${s.id})"><div class="sim-img"><img src="${carImg(s)}" onerror="this.style.display='none'"></div><div class="sim-body"><h4>${s.year} ${s.make} ${s.model}</h4><div class="sim-price">${fp(s.msrp)}</div></div></div>`).join('')}</div>`;
+  <div class="similar-grid">${sim.map(s=>`<div class="similar-card" onclick="showDetail(${s.id})"><div class="sim-img"><img src="${carImg(s)}" ${imgAttrs(s)}></div><div class="sim-body"><h4>${s.year} ${s.make} ${s.model}</h4><div class="sim-price">${fp(s.msrp)}</div></div></div>`).join('')}</div>`;
   window.scrollTo(0,0)}
 
 function showUpDetail(id){const c=UPCOMING.find(x=>x.id===id);if(!c)return;hideAll();const d=document.getElementById('detail-view');d.classList.add('active');
   d.innerHTML=`<button class="back-btn" onclick="goBack()">&larr; Back</button>
   <div class="detail-header">
-    <div class="detail-img"><img src="${carImg(c)}" alt="${c.make} ${c.model}" onerror="this.style.display='none'"></div>
+    <div class="detail-img"><img src="${carImg(c)}" alt="${c.make} ${c.model}" ${imgAttrs(c)}></div>
     <div class="detail-info">
       <h1>${c.year} ${c.make} ${c.model}</h1><div class="detail-trim">${c.trim} &middot; <span style="color:var(--yellow);font-weight:700">${c.status.toUpperCase()}</span></div>
       <div class="detail-prices" style="grid-template-columns:repeat(2,1fr)">
@@ -615,12 +640,12 @@ function renderMkt(){const r=userLocation||NB;if(!map){map=L.map('map').setView(
   const sorted=MARKETPLACE.map(l=>{l.distance=hav(r.lat,r.lng,l.lat,l.lng);l.savings=l.origMsrp-l.askingPrice;l.savPct=Math.round(l.savings/l.origMsrp*100);return l}).sort((a,b)=>a.distance-b.distance);
   sorted.forEach(l=>{const m=L.marker([l.lat,l.lng]).addTo(map);m.bindPopup(`<div style="font-size:13px"><strong>${l.year} ${l.make} ${l.model}</strong><br>${fp(l.askingPrice)}<br><span style="color:#34d399">Save ${fp(l.savings)} (${l.savPct}%)</span></div>`);markers.push(m)});
   document.getElementById('listingCount').textContent=sorted.length;
-  document.getElementById('listingGrid').innerHTML=sorted.map(l=>`<div class="listing-card" onclick="showListing(${l.id})"><div class="listing-img"><img src="${carImg(l)}" onerror="this.style.display='none'"><span class="dom-badge">${l.daysOnMarket}d on market</span></div><div class="listing-body"><h3>${l.year} ${l.make} ${l.model} ${l.trim}</h3><div class="listing-sub">${l.dealer} &middot; <span class="distance-badge">${l.distance.toFixed(1)} mi</span></div><div class="listing-prices"><div class="lp"><div class="lp-label">Asking</div><div class="lp-val" style="color:var(--green)">${fp(l.askingPrice)}</div></div><div class="lp"><div class="lp-label">Orig MSRP</div><div class="lp-val" style="color:var(--muted);text-decoration:line-through">${fp(l.origMsrp)}</div></div><div class="lp"><div class="lp-label">Save</div><div class="lp-val savings-badge">${fp(l.savings)} (${l.savPct}%)</div></div></div><div class="listing-meta"><span>${l.mileage.toLocaleString()} mi</span><span>${l.color}</span><span>${l.hp} hp</span></div></div></div>`).join('')}
+  document.getElementById('listingGrid').innerHTML=sorted.map(l=>`<div class="listing-card" onclick="showListing(${l.id})"><div class="listing-img"><img src="${carImg(l)}" ${imgAttrs(l)}><span class="dom-badge">${l.daysOnMarket}d on market</span></div><div class="listing-body"><h3>${l.year} ${l.make} ${l.model} ${l.trim}</h3><div class="listing-sub">${l.dealer} &middot; <span class="distance-badge">${l.distance.toFixed(1)} mi</span></div><div class="listing-prices"><div class="lp"><div class="lp-label">Asking</div><div class="lp-val" style="color:var(--green)">${fp(l.askingPrice)}</div></div><div class="lp"><div class="lp-label">Orig MSRP</div><div class="lp-val" style="color:var(--muted);text-decoration:line-through">${fp(l.origMsrp)}</div></div><div class="lp"><div class="lp-label">Save</div><div class="lp-val savings-badge">${fp(l.savings)} (${l.savPct}%)</div></div></div><div class="listing-meta"><span>${l.mileage.toLocaleString()} mi</span><span>${l.color}</span><span>${l.hp} hp</span></div></div></div>`).join('')}
 
 function showListing(id){const l=MARKETPLACE.find(x=>x.id===id);if(!l)return;const r=userLocation||NB,dist=hav(r.lat,r.lng,l.lat,l.lng);hideAll();const d=document.getElementById('detail-view');d.classList.add('active');
   d.innerHTML=`<button class="back-btn" onclick="goBack()">&larr; Back</button>
   <div class="detail-header">
-    <div class="detail-img"><img src="${carImg(l)}" onerror="this.style.display='none'"></div>
+    <div class="detail-img"><img src="${carImg(l)}" ${imgAttrs(l)}></div>
     <div class="detail-info">
       <h1>${l.year} ${l.make} ${l.model} ${l.trim}</h1><div class="detail-trim">${l.color} &middot; ${l.interior} &middot; VIN: ${l.vin}</div>
       <div class="detail-prices">
@@ -645,7 +670,7 @@ function showListing(id){const l=MARKETPLACE.find(x=>x.id===id);if(!l)return;con
 // ============ COMPARE ============
 function toggleCompare(id){const i=compareList.indexOf(id);if(i>=0)compareList.splice(i,1);else if(compareList.length<4)compareList.push(id);localStorage.setItem('av_cmp',JSON.stringify(compareList))}
 function renderCompare(){const cars=compareList.map(id=>CARS.find(c=>c.id===id)).filter(Boolean);document.getElementById('compareCount').textContent=cars.length;if(!cars.length){document.getElementById('compareContent').innerHTML='<div class="empty-state"><div class="empty-icon">&#8644;</div><p>No cars to compare. Browse and click "+ Compare" (up to 4).</p></div>';return}
-  const rows=[{l:'',fn:c=>`<div class="car-header"><img src="${carImg(c)}" onerror="this.style.display='none'"><h4>${c.year} ${c.make} ${c.model}</h4><div style="color:var(--muted);font-size:12px">${c.trim}</div><button class="compare-remove" onclick="toggleCompare(${c.id});renderCompare()">Remove</button></div>`},{l:'MSRP',fn:c=>fp(c.msrp),best:'low',raw:c=>c.msrp},{l:'Market',fn:c=>fp(c.marketPrice),best:'low',raw:c=>c.marketPrice},{l:'Used',fn:c=>c.usedPrice?fp(c.usedPrice):'N/A'},{l:'Overall',fn:c=>`<span style="color:${sc(c.scores.overall)};font-weight:800;font-size:20px">${c.scores.overall}</span>`,best:'high',raw:c=>c.scores.overall},{l:'Performance',fn:c=>c.scores.performance,best:'high',raw:c=>c.scores.performance},{l:'Safety',fn:c=>c.scores.safety,best:'high',raw:c=>c.scores.safety},{l:'Reliability',fn:c=>c.scores.reliability,best:'high',raw:c=>c.scores.reliability},{l:'Comfort',fn:c=>c.scores.comfort,best:'high',raw:c=>c.scores.comfort},{l:'Tech',fn:c=>c.scores.tech,best:'high',raw:c=>c.scores.tech},{l:'Value',fn:c=>c.scores.value,best:'high',raw:c=>c.scores.value},{l:'Engine',fn:c=>c.engine},{l:'HP',fn:c=>c.hp+' hp',best:'high',raw:c=>c.hp},{l:'Torque',fn:c=>c.torque+' lb-ft',best:'high',raw:c=>c.torque},{l:'Trans',fn:c=>c.transmission},{l:'Drive',fn:c=>c.drivetrain},{l:'Economy',fn:c=>c.fuelEconomy},{l:'Weight',fn:c=>c.weight.toLocaleString()+' lbs',best:'low',raw:c=>c.weight},{l:'Cargo',fn:c=>c.cargo+' cu ft',best:'high',raw:c=>c.cargo},{l:'Annual Cost',fn:c=>fp((c.annualInsurance||2000)+(c.annualFuel||2000)+(c.annualMaint||1000)),best:'low',raw:c=>(c.annualInsurance||2000)+(c.annualFuel||2000)+(c.annualMaint||1000)}];
+  const rows=[{l:'',fn:c=>`<div class="car-header"><img src="${carImg(c)}" ${imgAttrs(c)}><h4>${c.year} ${c.make} ${c.model}</h4><div style="color:var(--muted);font-size:12px">${c.trim}</div><button class="compare-remove" onclick="toggleCompare(${c.id});renderCompare()">Remove</button></div>`},{l:'MSRP',fn:c=>fp(c.msrp),best:'low',raw:c=>c.msrp},{l:'Market',fn:c=>fp(c.marketPrice),best:'low',raw:c=>c.marketPrice},{l:'Used',fn:c=>c.usedPrice?fp(c.usedPrice):'N/A'},{l:'Overall',fn:c=>`<span style="color:${sc(c.scores.overall)};font-weight:800;font-size:20px">${c.scores.overall}</span>`,best:'high',raw:c=>c.scores.overall},{l:'Performance',fn:c=>c.scores.performance,best:'high',raw:c=>c.scores.performance},{l:'Safety',fn:c=>c.scores.safety,best:'high',raw:c=>c.scores.safety},{l:'Reliability',fn:c=>c.scores.reliability,best:'high',raw:c=>c.scores.reliability},{l:'Comfort',fn:c=>c.scores.comfort,best:'high',raw:c=>c.scores.comfort},{l:'Tech',fn:c=>c.scores.tech,best:'high',raw:c=>c.scores.tech},{l:'Value',fn:c=>c.scores.value,best:'high',raw:c=>c.scores.value},{l:'Engine',fn:c=>c.engine},{l:'HP',fn:c=>c.hp+' hp',best:'high',raw:c=>c.hp},{l:'Torque',fn:c=>c.torque+' lb-ft',best:'high',raw:c=>c.torque},{l:'Trans',fn:c=>c.transmission},{l:'Drive',fn:c=>c.drivetrain},{l:'Economy',fn:c=>c.fuelEconomy},{l:'Weight',fn:c=>c.weight.toLocaleString()+' lbs',best:'low',raw:c=>c.weight},{l:'Cargo',fn:c=>c.cargo+' cu ft',best:'high',raw:c=>c.cargo},{l:'Annual Cost',fn:c=>fp((c.annualInsurance||2000)+(c.annualFuel||2000)+(c.annualMaint||1000)),best:'low',raw:c=>(c.annualInsurance||2000)+(c.annualFuel||2000)+(c.annualMaint||1000)}];
   let h='<div style="overflow-x:auto"><table class="compare-table">';rows.forEach(r=>{h+='<tr><th>'+r.l+'</th>';let bv=null;if(r.best&&r.raw){const vs=cars.map(c=>r.raw(c));bv=r.best==='high'?Math.max(...vs):Math.min(...vs)}cars.forEach(c=>{const ib=r.raw&&bv!==null&&r.raw(c)===bv&&cars.length>1;h+=`<td class="${ib?'best':''}">${r.fn(c)}</td>`});h+='</tr>'});h+='</table></div>';document.getElementById('compareContent').innerHTML=h}
 
 // ============ FAVORITES ============
